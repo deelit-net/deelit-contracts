@@ -20,6 +20,11 @@ contract FeeCollector is IFeeCollector, AccessControlUpgradeable, PausableUpgrad
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER");
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+    
     function initialize() public initializer {
         __AccessControl_init();
         __Pausable_init();

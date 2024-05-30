@@ -36,6 +36,11 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
     // Mapping of payment hashes to payment states
     mapping(bytes32 => State) public payments;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+    
     function initialize(LibFee.Fee calldata fees_) public initializer {
         __AccessControl_init();
         __Pausable_init();

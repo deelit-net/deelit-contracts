@@ -15,7 +15,7 @@ These contracts are NOT production ready and still need some testing and auditin
 To install the necessary dependencies, run the following command:
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## Running test
@@ -23,13 +23,13 @@ npm install
 To run the unit tests, use the following command:
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 To generate code coverage, use the following command:
 
 ```bash
-npm run coverage
+pnpm run coverage
 ```
 
 ## Security Analysis with Mythril

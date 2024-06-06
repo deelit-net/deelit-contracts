@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
 
-pragma solidity ^0.8.20;
-
-import {LibBp} from "./LibBp.sol";
-import {IFeeCollector} from "../interfaces/IFeeCollector.sol";
+import "./LibBp.sol";
+import "../interfaces/IFeeCollector.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+/// @custom:security-contact dev@deelit.net
 library LibFee {
     using LibBp for uint;
     using Math for uint;

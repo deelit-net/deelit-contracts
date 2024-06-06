@@ -1,9 +1,12 @@
 import { HardhatUserConfig, vars } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@openzeppelin/hardhat-upgrades';
+import '@openzeppelin/defender-sdk';
 import "@nomicfoundation/hardhat-verify";
 import 'solidity-docgen';
-// import "hardhat-gas-reporter"
+
+const DEFENDER_API_KEY = vars.get("DEFENDER_API_KEY");
+const DEFENDER_API_SECRET = vars.get("DEFENDER_API_SECRET");
 
 const SEPOLIA_ALCHEMY_API_KEY = vars.get("SEPOLIA_ALCHEMY_API_KEY");
 const SEPOLIA_ETHSCAN_API_KEY = vars.get("SEPOLIA_ETHSCAN_API_KEY");
@@ -26,6 +29,11 @@ const config: HardhatUserConfig = {
   },
   docgen: {
     outputDir: './docs',
+  },
+  defender: {
+    apiKey: DEFENDER_API_KEY,
+    apiSecret: DEFENDER_API_SECRET,
+    useDefenderDeploy: false,
   },
   etherscan: {
     apiKey: {

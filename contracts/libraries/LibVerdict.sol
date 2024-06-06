@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./LibBp.sol";
 
+/// @custom:security-contact dev@deelit.net
 library LibVerdict {
     using LibBp for uint256;
 
-    bytes32 constant VERDICT_TYPEHASH = keccak256("Verdict(address from_address,bytes32 payment_hash,uint16 payer_bp,uint16 payee_bp)");
+    bytes32 private constant VERDICT_TYPEHASH = keccak256("Verdict(address from_address,bytes32 payment_hash,uint16 payer_bp,uint16 payee_bp)");
 
     struct Verdict {
         address from_address; // address of the verdict issuer

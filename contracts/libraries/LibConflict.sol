@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
+/// @custom:security-contact dev@deelit.net
 library LibConflict {
-    bytes32 constant CONFLICT_TYPEHASH = keccak256("Conflict(address from_address,bytes32 payment_hash)");
+    bytes32 private constant CONFLICT_TYPEHASH = keccak256("Conflict(address from_address,bytes32 payment_hash)");
 
     struct Conflict {
         address from_address; // address of the conflict initiator

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
@@ -14,8 +14,7 @@ import "./libraries/LibFee.sol";
 import "./libraries/LibBytes.sol";
 import "./libraries/LibVerdict.sol";
 
-// TODO import "hardhat/console.sol";
-
+/// @custom:security-contact dev@deelit.net
 abstract contract TransfertManager is OwnableUpgradeable {
     using Math for uint;
     using SafeERC20 for IERC20;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 import "../libraries/LibTransaction.sol";
 import "../libraries/LibConflict.sol";
@@ -10,7 +10,9 @@ import "../libraries/LibAcceptance.sol";
 /// @author d0x4545lit
 /// @notice Interface for the Deelit Protocol.
 /// @dev This interface define the main functions of the Deelit Protocol.
+/// @custom:security-contact dev@deelit.net
 interface IDeelitProtocol {
+    
     event Payed(bytes32 indexed paymentHash_);
     event Claimed(bytes32 indexed paymentHash_, bytes32 indexed acceptanceHash_);
     event Conflicted(bytes32 indexed paymentHash_, bytes32 indexed conflictHash_);

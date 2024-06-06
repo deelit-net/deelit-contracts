@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "./interfaces/IDeelitProtocol.sol";
 import "./TransfertManager.sol";
 
-contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgradeable, PausableUpgradeable, EIP712Upgradeable {
-    using ECDSA for bytes32;
+
+/// @custom:security-contact dev@deelit.net
+contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgradeable, PausableUpgradeable, EIP712Upgradeable, UUPSUpgradeable {
+    using SignatureChecker for address;
 
     /// @notice Payment state. The 'payer' property is also used to determine if a payment is initiated or not.
     struct State {
@@ -40,12 +41,13 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
     constructor() {
         _disableInitializers();
     }
-    
+
     function initialize(LibFee.Fee calldata fees_) public initializer {
         __AccessControl_init();
         __Pausable_init();
         __EIP712_init(EIP712_DOMAIN_NAME, EIP712_DOMAIN_VERSION);
         __TransfertManager_init(fees_);
+        __UUPSUpgradeable_init();
 
         // set roles
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -202,13 +204,13 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
         emit Verdicted(paymentHash, verdictHash);
     }
 
-    /// @dev validate a signature originator following EIP-712 spec.
+    /// @dev validate a signature originator. Handle EIP1271 and EOA signatures using SignatureChecker library.
     /// @param signer_ the expected signer address
     /// @param digest_ the digest hash supposed to be signed
     /// @param signature_ the signature to verify
-    function _verifySignature(address signer_, bytes32 digest_, bytes calldata signature_) private pure {
-        address signer = digest_.recover(signature_);
-        require(signer == signer_, "DeelitProtocol: Invalid signature");
+    function _verifySignature(address signer_, bytes32 digest_, bytes calldata signature_) private view {
+        bool isValid = signer_.isValidSignatureNow(digest_, signature_);
+        require(isValid, "DeelitProtocol: Invalid signature");
     }
 
     /// @dev Compute the hash of a data structure following EIP-712 spec.
@@ -226,4 +228,11 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
     function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
+
+    /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        override
+    {}
 }

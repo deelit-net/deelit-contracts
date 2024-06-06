@@ -74,7 +74,7 @@ describe("DeelitProtocol - Claim tests", function () {
   
         await expect(
           deelit.connect(charlie).claimAccepted(tx, acceptance, ZeroBytes32)
-        ).to.be.revertedWithCustomError(deelit, "ECDSAInvalidSignatureLength");
+        ).to.be.revertedWith("DeelitProtocol: Invalid signature");
       });
 
     it("should be able to claim payment without signature (called from payer)", async function () {

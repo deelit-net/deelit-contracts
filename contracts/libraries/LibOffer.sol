@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+/// @custom:security-contact dev@deelit.net
 library LibOffer {
     using Math for uint;
 
-    bytes32 constant OFFER_TYPEHASH =
+    bytes32 private constant OFFER_TYPEHASH =
         keccak256(
             "Offer(address from_address,bytes32 product_hash,uint256 price,string currency_code,uint256 chain_id,address token_address,uint8 shipment_type,uint256 shipment_price,uint256 expiration_time)"
         );

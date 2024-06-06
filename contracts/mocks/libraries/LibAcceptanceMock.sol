@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
-import "../../libraries/LibAcceptance.sol";
+import { LibAcceptance } from "../../libraries/LibAcceptance.sol";
 
 contract LibAcceptanceMock {
     function hash(LibAcceptance.Acceptance calldata Acceptance_) external pure returns (bytes32) {

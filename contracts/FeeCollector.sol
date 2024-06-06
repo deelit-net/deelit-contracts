@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -14,7 +15,8 @@ import "./interfaces/IFeeCollector.sol";
 /// @title The Deelit Protocol Fee Collector contract
 /// @author d0x4545lit
 /// @notice This is a basic fee collector contract that only collect native and ERC20 fees and allow the owner to withdraw them.
-contract FeeCollector is IFeeCollector, AccessControlUpgradeable, PausableUpgradeable {
+/// @custom:security-contact dev@deelit.net
+contract FeeCollector is IFeeCollector, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address payable;
     using SafeERC20 for IERC20;
 
@@ -24,14 +26,14 @@ contract FeeCollector is IFeeCollector, AccessControlUpgradeable, PausableUpgrad
     constructor() {
         _disableInitializers();
     }
-    
+
     function initialize() public initializer {
         __AccessControl_init();
         __Pausable_init();
+        __UUPSUpgradeable_init();
 
         // set roles
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
     }
 
     function collect() external payable whenNotPaused {
@@ -60,4 +62,11 @@ contract FeeCollector is IFeeCollector, AccessControlUpgradeable, PausableUpgrad
     function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
+
+    /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        override
+    {}
 }

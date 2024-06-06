@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
+/// @custom:security-contact dev@deelit.net
 library LibBytes {
     /// @dev Convert bytes to address
     /// @param bytes_ bytes wuth must be 20 bytes

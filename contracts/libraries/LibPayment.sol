@@ -1,10 +1,11 @@
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
+/// @custom:security-contact dev@deelit.net
 library LibPayment {
-    bytes32 constant PAYMENT_TYPEHASH =
+    bytes32 private constant PAYMENT_TYPEHASH =
         keccak256("Payment(address from_address,bytes destination_address,bytes32 offer_hash,uint256 expiration_time,uint256 vesting_period)");
 
     /// @notice Payment structure

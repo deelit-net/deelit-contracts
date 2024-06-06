@@ -4,6 +4,7 @@
   "scripts": {
     "test": "hardhat test",
     "coverage": "hardhat coverage",
+    "gas": "REPORT_GAS=true hardhat test",
     "compile": "hardhat compile",
     "docgen": "hardhat docgen",
     "vars": "hardhat vars"
@@ -11,7 +12,9 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.8",
     "@openzeppelin/hardhat-upgrades": "^3.1.0",
+    "chai": "^4.4.1",
     "ethers": "^6.12.1",
     "hardhat": "^2.22.4",
     "prettier": "^3.2.5",
@@ -20,6 +23,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
-    "@openzeppelin/contracts-upgradeable": "^5.0.2"
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/defender-sdk": "^1.13.3"
   }
 }

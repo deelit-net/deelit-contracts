@@ -1,7 +1,6 @@
 import { expect } from "chai";
-import hre, { ethers } from "hardhat";
+import hre from "hardhat";
 import { LibFeeMock } from "../../typechain-types";
-import { LibFee } from "../../typechain-types/contracts/DeelitProtocol";
 import { ZeroAddress } from "ethers";
 
 describe("LibFee", function () {
@@ -14,7 +13,8 @@ describe("LibFee", function () {
 	describe("should calculate fee", () => {
 		it("should calculate fee", async () => {
 			// fee calculation is based on LibBp. see: LibBpTest.ts
-			expect(await lib.calculateFees(100_00, { collector: ZeroAddress, amount_bp: 10_00 })).to.equal(10_00);
+			expect(await lib.calculateFees(100_000, { collector: ZeroAddress, amount_bp: 1_00 })).to.equal(1_000);
+			expect(await lib.calculateFees(100_000, { collector: ZeroAddress, amount_bp: 1 })).to.equal(10);
 		});
 	})
 });

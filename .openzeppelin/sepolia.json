@@ -2,25 +2,20 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0x2119Dc11f08886733995f6F8D62D7B0Ac15f3646",
-      "txHash": "0x94a43fdb23d2a9e5f4aafab579433321064ae8fb550b1993a4f64c2c72475562",
-      "kind": "transparent"
+      "address": "0x11E133f8CFA43bdF03Ff406dAfc82B3D49493783",
+      "txHash": "0xffd4a2eee5b54569eb5dd010f1ed63d27463895ac8b78767daf7023878edce88",
+      "kind": "uups"
     },
     {
-      "address": "0xE48D4392240eaE752BbA6a79c1B5ec3170681F53",
-      "txHash": "0x6f68b8082059ce2a7ff88ad3bf818a147f6c44cc042b1acccc4fb4f303bce858",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xD8533aC9b5dE2926595780482b4c6fe535D1A0a4",
-      "txHash": "0xabb78b58eae62eda90ed633060a4128acb3e7c4a652c3b09c8d2a524163cd142",
-      "kind": "transparent"
+      "address": "0xf189f0fB4EDba8b5d039032758F85411dfb883A0",
+      "txHash": "0x40466624015acfdf5a010d247cd1002a28d0baa323aa42991140980f5b0b8bd6",
+      "kind": "uups"
     }
   ],
   "impls": {
-    "1e0884900e205383cbf0dac3b16d467f9c20d81369692725ec229b3c2b20864c": {
-      "address": "0x55fAFF29cdD1744a64CBB8e312Cc0D9E037455b7",
-      "txHash": "0xd24e8fe28476fcc6588d38e0704bbf92c40a1c2b7fd171d34ac0d4b802506fa7",
+    "4d93944ed29895f5828f762451aeda7d20d0f1fd58c5a09b2be81c235ee240cd": {
+      "address": "0x3E379239985d014a8b7F855892a8775a93Fc71aB",
+      "txHash": "0x2e228493b57655d971c7483ceebe822407bbfba89465e74c0f8021e0138beb0f",
       "layout": {
         "solcVersion": "0.8.24",
         "storage": [],
@@ -75,7 +70,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(PausableStorage)223_storage": {
+          "t_struct(PausableStorage)278_storage": {
             "label": "struct PausableUpgradeable.PausableStorage",
             "members": [
               {
@@ -152,9 +147,9 @@
         }
       }
     },
-    "028e6002147fde7dc1b474483d6d813ee61b2a98a7bf9c7bc82a25c4df4f4727": {
-      "address": "0x080115C5Fe5001ab643C3DaF5A72Bc88Fef86CfC",
-      "txHash": "0x7b1c4728742eb549adc9dd93ee0fa98c2ce79af1d0d4c3d81ebbc5227521b915",
+    "635128b44a8fa49a9d71b25d437bee4bb73c24284bbd8ded7dc83168d405720e": {
+      "address": "0x30c7d0987639a276AAB1C92287ec78230ef6E5A2",
+      "txHash": "0xe100ff4d556f835dabfeca3d396a32b6e5c03e01e3a38c54636f01cda804e3dc",
       "layout": {
         "solcVersion": "0.8.24",
         "storage": [
@@ -162,15 +157,15 @@
             "label": "fees",
             "offset": 0,
             "slot": "0",
-            "type": "t_struct(Fee)5545_storage",
+            "type": "t_struct(Fee)7217_storage",
             "contract": "TransfertManager",
-            "src": "contracts/TransfertManager.sol:25"
+            "src": "contracts/TransfertManager.sol:24"
           },
           {
             "label": "payments",
             "offset": 0,
             "slot": "1",
-            "type": "t_mapping(t_bytes32,t_struct(State)4064_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(State)5652_storage)",
             "contract": "DeelitProtocol",
             "src": "contracts/DeelitProtocol.sol:38"
           }
@@ -212,7 +207,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(EIP712Storage)300_storage": {
+          "t_struct(EIP712Storage)355_storage": {
             "label": "struct EIP712Upgradeable.EIP712Storage",
             "members": [
               {
@@ -272,7 +267,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(PausableStorage)223_storage": {
+          "t_struct(PausableStorage)278_storage": {
             "label": "struct PausableUpgradeable.PausableStorage",
             "members": [
               {
@@ -306,20 +301,20 @@
             "label": "uint64",
             "numberOfBytes": "8"
           },
-          "t_contract(IFeeCollector)5414": {
+          "t_contract(IFeeCollector)7084": {
             "label": "contract IFeeCollector",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_bytes32,t_struct(State)4064_storage)": {
+          "t_mapping(t_bytes32,t_struct(State)5652_storage)": {
             "label": "mapping(bytes32 => struct DeelitProtocol.State)",
             "numberOfBytes": "32"
           },
-          "t_struct(Fee)5545_storage": {
+          "t_struct(Fee)7217_storage": {
             "label": "struct LibFee.Fee",
             "members": [
               {
                 "label": "collector",
-                "type": "t_contract(IFeeCollector)5414",
+                "type": "t_contract(IFeeCollector)7084",
                 "offset": 0,
                 "slot": "0"
               },
@@ -332,7 +327,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(State)4064_storage": {
+          "t_struct(State)5652_storage": {
             "label": "struct DeelitProtocol.State",
             "members": [
               {

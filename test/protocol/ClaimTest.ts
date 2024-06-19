@@ -9,11 +9,9 @@ import {
   deployDeelitProtocolWithInitialTokenPaymentFixture,
 } from "../utils/fixtures";
 import {
-  AcceptanceUtils,
-  calculateFee,
-  ConflictUtils,
+  AcceptanceUtils, ConflictUtils,
   domain,
-  ZeroBytes32,
+  ZeroBytes32
 } from "../utils/utils";
 import { LibTransaction } from "../../typechain-types/contracts/DeelitProtocol";
 import { ZeroAddress } from "ethers";

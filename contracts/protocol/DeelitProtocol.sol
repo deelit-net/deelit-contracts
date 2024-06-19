@@ -2,16 +2,20 @@
 
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "./interfaces/IDeelitProtocol.sol";
-import "./TransfertManager.sol";
-
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+import {IAccessManager} from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import {IDeelitProtocol, LibTransaction, LibAcceptance, LibConflict, LibVerdict} from "./IDeelitProtocol.sol";
+import {TransfertManager, LibFee} from "./TransfertManager.sol";
+import {LibPayment} from "../libraries/LibPayment.sol";
+import {LibOffer} from "../libraries/LibOffer.sol";
+import {LibAccess} from "../libraries/LibAccess.sol";
 
 /// @custom:security-contact dev@deelit.net
-contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgradeable, PausableUpgradeable, EIP712Upgradeable, UUPSUpgradeable {
+contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgradeable, PausableUpgradeable, EIP712Upgradeable, UUPSUpgradeable {
     using SignatureChecker for address;
 
     /// @notice Payment state. The 'payer' property is also used to determine if a payment is initiated or not.
@@ -22,10 +26,6 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
         bytes32 verdict; // verdict hash
         uint256 vesting; // vesting time for payment claim => payment time + vesting_period
     }
-
-    // Define roles
-    bytes32 public constant JUDGE_ROLE = keccak256("JUDGE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER");
 
     // Define auto acceptance due to expiration
     bytes32 public constant AUTO_ACCEPTANCE = keccak256("AUTO_ACCEPTANCE");
@@ -42,20 +42,17 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
         _disableInitializers();
     }
 
-    function initialize(LibFee.Fee calldata fees_) public initializer {
-        __AccessControl_init();
+    function initialize(IAccessManager manager_, LibFee.Fee calldata fees_) public initializer {
+        __AccessManaged_init(address(manager_));
         __Pausable_init();
         __EIP712_init(EIP712_DOMAIN_NAME, EIP712_DOMAIN_VERSION);
         __TransfertManager_init(fees_);
         __UUPSUpgradeable_init();
-
-        // set roles
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /// @dev Set the fees for the protocol.
     /// @param fees_ the fees to set. see LibFee.Fee struct.
-    function setFees(LibFee.Fee calldata fees_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setFees(LibFee.Fee calldata fees_) external restricted {
         // checks are done in the TransfertManager
         _setFees(fees_);
     }
@@ -184,8 +181,9 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
         // retrieve payment state
         State storage state = payments[verdict_.payment_hash];
 
+        (bool isIssuerJudge,) = _manager().hasRole(LibAccess.JUDGE_ROLE, verdict_.from_address);
+        require(isIssuerJudge, "DeelitProtocol: Invalid verdict issuer");
         require(verdict_.payment_hash == paymentHash, "DeelitProtocol: Invalid verdict payment hash");
-        require(hasRole(JUDGE_ROLE, verdict_.from_address), "DeelitProtocol: Invalid verdict issuer");
         require(state.acceptance == bytes32(0), "DeelitProtocol: Payment already claimed");
         require(state.conflict != bytes32(0), "DeelitProtocol: Payment not in conflict");
         require(state.verdict == bytes32(0), "DeelitProtocol: Payment already resolved");
@@ -219,20 +217,24 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessControlUpgra
         return _hashTypedDataV4(dataHash_);
     }
 
+    function _manager() private view returns (IAccessManager) {
+        return IAccessManager(authority());
+    }
+    
+    /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        restricted
+        override
+    {}
+
     /// @dev Pause the protocol.
-    function pause() external onlyRole(PAUSER_ROLE) {
+    function pause() external restricted {
         _pause();
     }
 
     /// @dev Unpause the protocol.
-    function unpause() external onlyRole(PAUSER_ROLE) {
+    function unpause() external restricted {
         _unpause();
     }
-
-    /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        override
-    {}
 }

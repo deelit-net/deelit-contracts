@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "./LibBp.sol";
+import {LibBp} from "./LibBp.sol";
 
 /// @custom:security-contact dev@deelit.net
 library LibVerdict {

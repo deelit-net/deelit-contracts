@@ -29,6 +29,6 @@ describe("DeelitProtocol - Fees tests", function () {
 
     await expect(
       deelit.connect(alice).setFees(newFees)
-    ).to.be.revertedWithCustomError(deelit, "AccessControlUnauthorizedAccount");
+    ).to.be.revertedWithCustomError(deelit, "AccessManagedUnauthorized");
   });
 });

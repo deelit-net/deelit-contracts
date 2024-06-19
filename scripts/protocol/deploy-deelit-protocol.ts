@@ -1,9 +1,13 @@
 import { ethers, upgrades } from "hardhat";
-import { LibFee } from "../typechain-types/contracts/DeelitProtocol";
+import { LibFee } from "../../typechain-types/contracts/DeelitProtocol";
 
+const ACCESS_MANAGER_ADDRESS = process.env.ACCESS_MANAGER_ADDRESS;
 const FEE_COLLECTOR_ADDRESS = process.env.FEE_COLLECTOR_ADDRESS;
 
 async function main() {
+  if (!ACCESS_MANAGER_ADDRESS) {
+    throw new Error("ACCESS_MANAGER_ADDRESS is required");
+  }
   if (!FEE_COLLECTOR_ADDRESS) {
     throw new Error("FEE_COLLECTOR_ADDRESS is required");
   }
@@ -17,7 +21,8 @@ async function main() {
   const deelitProtocolfactory =
     await ethers.getContractFactory("DeelitProtocol");
   const deelitProtocol = await upgrades.deployProxy(deelitProtocolfactory, [
-    fees,
+    ACCESS_MANAGER_ADDRESS,
+    fees
   ]);
   const deelitProtocolAddress = await deelitProtocol.getAddress();
 

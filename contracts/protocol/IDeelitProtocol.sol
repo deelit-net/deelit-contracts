@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "../libraries/LibTransaction.sol";
-import "../libraries/LibConflict.sol";
-import "../libraries/LibVerdict.sol";
-import "../libraries/LibAcceptance.sol";
+import {LibTransaction} from "../libraries/LibTransaction.sol";
+import {LibConflict} from "../libraries/LibConflict.sol";
+import {LibVerdict} from "../libraries/LibVerdict.sol";
+import {LibAcceptance} from "../libraries/LibAcceptance.sol";
 
 /// @title Deelit Protocol Interface
 /// @author d0x4545lit

@@ -212,11 +212,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // alice sign the conflict
         // charlie resolves the conflict without signature
         
-        const { deelit, alice, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
     
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
 
@@ -252,11 +252,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // charlie resolves the conflict with verdict signature
         // alice call resolution with charlie signature
         
-        const { deelit, alice, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
     
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
 
@@ -292,11 +292,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // alice sign the conflict
         // charlie resolves the conflict with full refund
         
-        const { deelit, alice, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
     
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
         const aliceBalanceBefore = await hre.ethers.provider.getBalance(alice.address);
@@ -334,11 +334,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // alice sign the conflict
         // charlie resolves the conflict with partial refund
 
-        const { deelit, alice, bob, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, bob, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
 
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
         const aliceBalanceBefore = await hre.ethers.provider.getBalance(alice.address);
@@ -362,7 +362,6 @@ describe("DeelitProtocol - Conflict tests", function () {
             .get();
 
         const verdictHash = await VerdictUtils.hash(verdict, deelitAddress);
-        const signature = await charlie.signTypedData(domain(deelitAddress), VerdictUtils.typedData, verdict);
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
         
@@ -380,11 +379,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // bob sign the conflict
         // charlie resolves the conflict with full payment
 
-        const { deelit, alice, bob, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, bob, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
 
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
         const aliceBalanceBefore = await hre.ethers.provider.getBalance(alice.address);
@@ -409,7 +408,6 @@ describe("DeelitProtocol - Conflict tests", function () {
             .get();
 
         const verdictHash = await VerdictUtils.hash(verdict, deelitAddress);
-        const signature = await charlie.signTypedData(domain(deelitAddress), VerdictUtils.typedData, verdict);
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
@@ -420,11 +418,11 @@ describe("DeelitProtocol - Conflict tests", function () {
     });
 
     it("should be able to resolve a conflict with token", async function () {
-        const { deelit, erc20, alice, bob, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, erc20, alice, bob, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialTokenPaymentFixture);
 
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
         const aliceBalanceBefore = await erc20.balanceOf(alice.address);
@@ -448,7 +446,6 @@ describe("DeelitProtocol - Conflict tests", function () {
             .get();
 
         const verdictHash = await VerdictUtils.hash(verdict, deelitAddress);
-        const signature = await charlie.signTypedData(domain(deelitAddress), VerdictUtils.typedData, verdict);
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
@@ -469,11 +466,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // alice sign the conflict
         // charlie resolves the conflict with rest
 
-        const { deelit, alice, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
         
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
 
@@ -541,11 +538,11 @@ describe("DeelitProtocol - Conflict tests", function () {
         // alice pays
         // alice resolves the conflict without conflict
 
-        const { deelit, alice, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
         
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
         
         const tx: LibTransaction.TransactionStruct = {
             payment,
@@ -560,18 +557,16 @@ describe("DeelitProtocol - Conflict tests", function () {
             .withPayerBp(0)
             .get();
 
-        const signature = await charlie.signTypedData(domain(await deelit.getAddress()), VerdictUtils.typedData, verdict);
-
         await expect(deelit.connect(alice).resolve(tx, verdict, ZeroBytes32))
             .to.be.revertedWith("DeelitProtocol: Payment not in conflict");
     });
 
     it("should not be able to resolve a conflict if conflict already resolved", async function () {
-        const { deelit, alice, bob, charlie, payment, paymentHash, offer } =
+        const { accessManager, JUDGE_ROLE, deelit, alice, charlie, payment, paymentHash, offer } =
             await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
         
         // grant charlie as judge
-        await deelit.grantRole(await deelit.JUDGE_ROLE(), charlie.address);
+        await accessManager.grantRole(JUDGE_ROLE, charlie.address, 0);
 
         const deelitAddress = await deelit.getAddress();
 
@@ -592,7 +587,6 @@ describe("DeelitProtocol - Conflict tests", function () {
             .withPayerBp(0)
             .get();
         const verdictHash = await VerdictUtils.hash(verdict, deelitAddress);
-        const signature = await charlie.signTypedData(domain(deelitAddress), VerdictUtils.typedData, verdict);
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 

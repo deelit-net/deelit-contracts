@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "./LibBp.sol";
-import "../interfaces/IFeeCollector.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {LibBp} from "./LibBp.sol";
+import {IFeeCollector} from "../protocol/IFeeCollector.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @custom:security-contact dev@deelit.net
 library LibFee {

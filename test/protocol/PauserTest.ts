@@ -6,10 +6,10 @@ import { deployDeelitProtocolFixture } from "../utils/fixtures";
 
 describe("DeelitProtocol - Pause tests", function () {
   it("should admin pause the contract", async function () {
-    const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE, deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
 
@@ -17,10 +17,10 @@ describe("DeelitProtocol - Pause tests", function () {
   });
 
   it("should admin unpause the contract", async function () {
-    const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE, deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
     await deelit.unpause();
@@ -29,35 +29,35 @@ describe("DeelitProtocol - Pause tests", function () {
   });
 
   it("should not allow non-admin to pause the contract", async function () {
-    const { deelit, owner, alice } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE, deelit, owner, alice } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await expect(deelit.connect(alice).pause()).to.be.revertedWithCustomError(
       deelit,
-      "AccessControlUnauthorizedAccount"
+      "AccessManagedUnauthorized"
     );
   });
 
   it("should not allow non-admin to unpause the contract", async function () {
-    const { deelit, owner, alice } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE,deelit, owner, alice } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
     await expect(deelit.connect(alice).unpause()).to.be.revertedWithCustomError(
       deelit,
-      "AccessControlUnauthorizedAccount"
+      "AccessManagedUnauthorized"
     );
   });
 
   it("should not be able to pay when paused", async function () {
-    const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE,deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
 
@@ -73,10 +73,10 @@ describe("DeelitProtocol - Pause tests", function () {
   });
 
   it("should not be able to claim with acceptance when paused", async function () {
-    const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE, deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
 
@@ -93,10 +93,10 @@ describe("DeelitProtocol - Pause tests", function () {
   });
 
   it("should not be able to claim when paused", async function () {
-    const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
+    const { accessManager, PAUSER_ROLE, deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     // grand owner to pauser role
-    await deelit.grantRole(await deelit.PAUSER_ROLE(), owner.address);
+    await accessManager.grantRole(PAUSER_ROLE, owner.address, 0);
 
     await deelit.pause();
 

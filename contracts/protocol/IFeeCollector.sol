@@ -13,4 +13,10 @@ interface IFeeCollector {
 
     /// @dev Handle ERC20 tokens.
     function collectErc20(address token_) external;
+
+    /// @dev Withdraw native fees to the specified address.
+    function withdraw(address payable receiver_, uint256 amount_) external;
+
+    /// @dev Withdraw ERC20 tokens to the specified address.
+    function withdrawErc20(address token_, address receiver_, uint256 amount_) external;
 }

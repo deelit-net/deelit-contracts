@@ -2,17 +2,19 @@
 
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./libraries/LibTransaction.sol";
-import "./libraries/LibFee.sol";
-import "./libraries/LibBytes.sol";
-import "./libraries/LibVerdict.sol";
+import {LibTransaction, LibOffer} from "../libraries/LibTransaction.sol";
+import {LibFee} from "../libraries/LibFee.sol";
+import {LibBytes} from "../libraries/LibBytes.sol";
+import {LibVerdict} from "../libraries/LibVerdict.sol";
+
 
 /// @custom:security-contact dev@deelit.net
 abstract contract TransfertManager is OwnableUpgradeable {

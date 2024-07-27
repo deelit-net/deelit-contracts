@@ -50,7 +50,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).conflict(tx, conflict, signature);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
 
         expect(state.acceptance).to.equal(ZeroBytes32);
         expect(state.conflict).to.equal(ConflictUtils.hash(conflict, deelitAddress));
@@ -88,10 +88,34 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).conflict(tx, conflict, signature);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.acceptance).to.equal(ZeroBytes32);
         expect(state.conflict).to.equal(ConflictUtils.hash(conflict, deelitAddress));
         expect(state.verdict).to.equal(ZeroBytes32);
+    });
+
+    it("should not be able to declare a conflict if not payer or payee", async function () {
+        // alice send an offer to bob
+        // bob signed a payment request
+        // alice pays
+        // charlie declares the conflict
+
+        const { deelit, charlie, payment, paymentHash, offer } =
+            await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
+
+        const tx: LibTransaction.TransactionStruct = {
+            payment,
+            offer,
+        };
+
+        const conflict = ConflictUtils
+            .builder()
+            .withFromAddress(charlie.address)
+            .withPaymentHash(paymentHash)
+            .get();
+
+        await expect(deelit.connect(charlie).conflict(tx, conflict, ZeroBytes32))
+            .to.be.revertedWith("DeelitProtocol: Invalid conflict issuer");
     });
 
     it("should be able to declare a conflict without signature", async function () {
@@ -118,7 +142,7 @@ describe("DeelitProtocol - Conflict tests", function () {
         
         await deelit.connect(alice).conflict(tx, conflict, ZeroBytes32);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.acceptance).to.equal(ZeroBytes32);
         expect(state.conflict).to.equal(ConflictUtils.hash(conflict, deelitAddress));
         expect(state.verdict).to.equal(ZeroBytes32);
@@ -240,7 +264,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
     });
 
@@ -281,7 +305,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(alice).resolve(tx, verdict, signature);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
     });
     
@@ -322,7 +346,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
         expect(await hre.ethers.provider.getBalance(alice.address)).to.equals(aliceBalanceBefore + BigInt(offer.price));
     });
@@ -365,7 +389,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
         
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
         expect(await hre.ethers.provider.getBalance(alice.address)).to.equals(aliceBalanceBefore + BigInt(offer.price) / 2n);
         expect(await hre.ethers.provider.getBalance(bob.address)).to.equals(bobBalanceBefore + BigInt(offer.price) / 2n);
@@ -411,7 +435,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
         expect(await hre.ethers.provider.getBalance(alice.address)).to.equals(aliceBalanceBefore);
         expect(await hre.ethers.provider.getBalance(bob.address)).to.equals(bobBalanceBefore + BigInt(offer.price));
@@ -449,7 +473,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
-        const paymentState = await deelit.payments(paymentHash);
+        const paymentState = await deelit.getPaymentState(paymentHash);
         expect(paymentState.verdict).to.equals(verdictHash);
 
         const aliceBalanceAfter = await erc20.balanceOf(alice.address);
@@ -590,7 +614,7 @@ describe("DeelitProtocol - Conflict tests", function () {
 
         await deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32);
 
-        const state = await deelit.payments(paymentHash);
+        const state = await deelit.getPaymentState(paymentHash);
         expect(state.verdict).to.equals(verdictHash);
 
         await expect(deelit.connect(charlie).resolve(tx, verdict, ZeroBytes32))

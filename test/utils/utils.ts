@@ -11,6 +11,7 @@ import { OfferBuilder } from "./builder/offer";
 import {
   AcceptanceTypedData,
   ConflictTypedData,
+  LotteryTypedData,
   OfferTypedData,
   PaymentTypedData,
   VerdictTypedData,
@@ -19,8 +20,15 @@ import { AcceptanceBuilder } from "./builder/acceptance";
 import { encodeBytes32String, ZeroAddress } from "ethers";
 import { ConflictBuilder } from "./builder/conflict";
 import { VerdictBuilder } from "./builder/verdict";
+import { LibLottery } from "../../typechain-types/contracts/lottery/Lottery";
+
+export const A_DAY = 24 * 60 * 60;
+export const A_WEEK = 7 * A_DAY;
+export const A_MONTH = 30 * A_DAY;
 
 export const ZeroBytes32 = encodeBytes32String("");
+
+export const MAGIC_VALUE = "0x1626ba7e";
 
 export function domain(verifyingContract: string) {
   return {
@@ -120,6 +128,11 @@ export const VerdictUtils = {
     ),
   typedData: VerdictTypedData,
 };
+
+export const LotteryUtils = {
+  hash : (lottery: LibLottery.LotteryStruct) => 
+    ethers.TypedDataEncoder.hashStruct("Lottery", LotteryTypedData, lottery),
+}
 
 export function calculateFee(amount: bigint, fee: bigint): bigint {
   return (amount * fee) / 10000n;

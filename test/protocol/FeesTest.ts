@@ -8,14 +8,14 @@ describe("DeelitProtocol - Fees tests", function () {
     const { deelit, owner } = await loadFixture(deployDeelitProtocolFixture);
 
     const newFees: LibFee.FeeStruct = {
-      collector: "0x0000000000000000000000000000000000000002",
+      recipient: "0x0000000000000000000000000000000000000002",
       amount_bp: 2000n,
     };
 
     await deelit.connect(owner).setFees(newFees);
 
-    const contractFees = await deelit.fees();
-    expect(contractFees.collector).to.equal(newFees.collector);
+    const contractFees = await deelit.getFees();
+    expect(contractFees.recipient).to.equal(newFees.recipient);
     expect(contractFees.amount_bp).to.equal(newFees.amount_bp);
   });
 
@@ -23,7 +23,7 @@ describe("DeelitProtocol - Fees tests", function () {
     const { deelit, alice } = await loadFixture(deployDeelitProtocolFixture);
 
     const newFees: LibFee.FeeStruct = {
-      collector: "0x0000000000000000000000000000000000000002",
+      recipient: "0x0000000000000000000000000000000000000002",
       amount_bp: 2000n,
     };
 

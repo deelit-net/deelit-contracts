@@ -44,3 +44,20 @@ export const PaymentTypedData = {
       { name: 'payee_bp', type: 'uint16' }
     ]
   }
+
+  export const LotteryTypedData = {
+    Lottery: [
+      { name: 'from_address', type: 'address' },
+      { name: 'product_hash', type: 'bytes32' },
+      { name: 'nb_tickets', type: 'uint256' },
+      { name: 'ticket_price', type: 'uint256' },
+      { name: 'token_address', type: 'address' },
+      { name: 'fee', type: 'Fee' },
+      { name: 'protocol_fee', type: 'Fee' },
+      { name: 'expiration_time', type: 'uint256' }
+    ],
+    Fee: [
+      { name: 'recipient', type: 'address' },
+      { name: 'amount_bp', type: 'uint48' }
+    ]
+  }

@@ -13,8 +13,8 @@ import {
   domain,
   ZeroBytes32
 } from "../utils/utils";
-import { LibTransaction } from "../../typechain-types/contracts/DeelitProtocol";
 import { ZeroAddress } from "ethers";
+import { LibTransaction } from "../../typechain-types/contracts/lottery/Lottery";
 
 describe("DeelitProtocol - Claim tests", function () {
   describe("Claim with acceptance tests", function () {
@@ -52,7 +52,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(charlie).claimAccepted(tx, acceptance, signature);
 
-      const state = await deelit.payments(paymentHash);
+      const state = await deelit.getPaymentState(paymentHash);
       expect(state.acceptance).to.equal(acceptanceHash);
       expect(state.conflict).to.equal(ZeroBytes32);
       expect(state.verdict).to.equal(ZeroBytes32);
@@ -113,7 +113,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(alice).claimAccepted(tx, acceptance, ZeroBytes32);
 
-      const state = await deelit.payments(paymentHash);
+      const state = await deelit.getPaymentState(paymentHash);
       expect(state.acceptance).to.equal(acceptanceHash);
       expect(state.conflict).to.equal(ZeroBytes32);
       expect(state.verdict).to.equal(ZeroBytes32);
@@ -154,7 +154,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(bob).claimAccepted(tx, acceptance, signature);
 
-      const state = await deelit.payments(paymentHash);
+      const state = await deelit.getPaymentState(paymentHash);
       expect(state.acceptance).to.equal(acceptanceHash);
       expect(state.conflict).to.equal(ZeroBytes32);
       expect(state.verdict).to.equal(ZeroBytes32);
@@ -224,7 +224,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(alice).conflict(tx, conflict, ZeroAddress);
 
-      const paymentState = await deelit.payments(paymentHash);
+      const paymentState = await deelit.getPaymentState(paymentHash);
       expect(paymentState.acceptance).to.equal(ZeroBytes32);
       expect(paymentState.conflict).to.equal(conflictHash);
       expect(paymentState.verdict).to.equal(ZeroBytes32);
@@ -260,7 +260,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(charlie).claim(tx);
 
-      const state = await deelit.payments(paymentHash);
+      const state = await deelit.getPaymentState(paymentHash);
       expect(state.acceptance).to.equal(await deelit.AUTO_ACCEPTANCE());
       expect(state.conflict).to.equal(ZeroBytes32);
       expect(state.verdict).to.equal(ZeroBytes32);
@@ -286,7 +286,7 @@ describe("DeelitProtocol - Claim tests", function () {
 
       await deelit.connect(charlie).claim(tx);
 
-      const state = await deelit.payments(paymentHash);
+      const state = await deelit.getPaymentState(paymentHash);
       expect(state.acceptance).to.equal(await deelit.AUTO_ACCEPTANCE());
       expect(state.conflict).to.equal(ZeroBytes32);
       expect(state.verdict).to.equal(ZeroBytes32);

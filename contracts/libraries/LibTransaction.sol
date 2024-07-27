@@ -6,6 +6,7 @@ import {LibOffer} from "./LibOffer.sol";
 
 /// @custom:security-contact dev@deelit.net
 library LibTransaction {
+
     struct Transaction {
         LibPayment.Payment payment;
         LibOffer.Offer offer;

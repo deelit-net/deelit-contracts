@@ -8,14 +8,14 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IFeeCollector} from "./IFeeCollector.sol";
+import {IFeeRecipient} from "./interfaces/IFeeRecipient.sol";
 
 
-/// @title The Deelit Protocol Fee Collector contract
+/// @title The Deelit Protocol Fee Recipient contract
 /// @author d0x4545lit
 /// @notice This is a basic fee collector contract that only collect native and ERC20 fees and allow the owner to withdraw them.
 /// @custom:security-contact dev@deelit.net
-contract FeeCollector is IFeeCollector, AccessManagedUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract FeeRecipient is IFeeRecipient, AccessManagedUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address payable;
     using SafeERC20 for IERC20;
 
@@ -30,11 +30,7 @@ contract FeeCollector is IFeeCollector, AccessManagedUpgradeable, PausableUpgrad
         __UUPSUpgradeable_init();
     }
 
-    function collect() external payable whenNotPaused {
-        // nothing to do
-    }
-
-    function collectErc20(address token_) external whenNotPaused {
+    receive() external payable {
         // nothing to do
     }
 
@@ -48,9 +44,5 @@ contract FeeCollector is IFeeCollector, AccessManagedUpgradeable, PausableUpgrad
     }
 
     /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        restricted
-        override
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override restricted {}
 }

@@ -1,8 +1,9 @@
 import { expect } from "chai";
-import { LibTransaction } from "../../typechain-types/contracts/DeelitProtocol";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { AcceptanceUtils, OfferUtils, PaymentUtils } from "../utils/utils";
 import { deployDeelitProtocolFixture } from "../utils/fixtures";
+import { ZeroAddress } from "ethers";
+import { LibTransaction } from "../../typechain-types/contracts/lottery/Lottery";
 
 describe("DeelitProtocol - Pause tests", function () {
   it("should admin pause the contract", async function () {
@@ -66,7 +67,7 @@ describe("DeelitProtocol - Pause tests", function () {
       offer: OfferUtils.builder().get(),
     };
 
-    await expect(deelit.pay(tx, "0x01")).to.be.revertedWithCustomError(
+    await expect(deelit.pay(tx, "0x01", ZeroAddress)).to.be.revertedWithCustomError(
       deelit,
       "EnforcedPause"
     );

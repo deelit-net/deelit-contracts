@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import hre from "hardhat";
-import { LibTransaction } from "../../typechain-types/contracts/DeelitProtocol";
 import {
   loadFixture,
   time,
@@ -13,15 +12,13 @@ import {
   ZeroBytes32
 } from "../utils/utils";
 import { deployDeelitProtocolFixture, deployERC20MockFixture } from "../utils/fixtures";
+import { LibTransaction } from "../../typechain-types/contracts/lottery/Lottery";
 
 describe("DeelitProtocol - Payment tests", function () {
   it("should be able to make native payment", async function () {
-    const { deelit, feeCollector, alice, bob } = await loadFixture(
+    const { deelit, deelitAddress, feeRecipientAddress, alice, bob } = await loadFixture(
       deployDeelitProtocolFixture
     );
-
-    const deelitAddress = await deelit.getAddress();
-    const feeCollectorAddress = await feeCollector.getAddress();
 
     // alice offers 1 eth
     const offer = OfferUtils.builder()
@@ -55,9 +52,9 @@ describe("DeelitProtocol - Payment tests", function () {
 
     await deelit
       .connect(alice)
-      .pay(tx, signature, { value: parseEther("1.1") });
+      .pay(tx, signature, ZeroAddress, { value: parseEther("1.1") });
 
-    const state = await deelit.payments(paymentHash);
+    const state = await deelit.getPaymentState(paymentHash);
     expect(state.acceptance).to.be.equal(ZeroBytes32);
     expect(state.conflict).to.be.equal(ZeroBytes32);
     expect(state.vesting).to.be.equal(
@@ -67,19 +64,15 @@ describe("DeelitProtocol - Payment tests", function () {
       parseEther("1")
     );
     expect(
-      await hre.ethers.provider.getBalance(feeCollectorAddress)
+      await hre.ethers.provider.getBalance(feeRecipientAddress)
     ).to.be.equal(parseEther("0.1"));
   });
 
   it("should be able to make token payment", async function () {
-    const { deelit, feeCollector, alice, bob, fees } = await loadFixture(
+    const { deelit, deelitAddress, feeRecipientAddress, alice, bob } = await loadFixture(
       deployDeelitProtocolFixture
     );
-    const { erc20 } = await deployERC20MockFixture();
-
-    const deelitAddress = await deelit.getAddress();
-    const feeCollectorAddress = await feeCollector.getAddress();
-    const erc20Address = await erc20.getAddress();
+    const { erc20, erc20Address } = await deployERC20MockFixture();
 
     // alice offers 100 tokens
     const offer = OfferUtils.builder()
@@ -118,25 +111,22 @@ describe("DeelitProtocol - Payment tests", function () {
     await erc20.connect(alice).approve(deelitAddress, 110n);
 
     // alice pays
-    await deelit.connect(alice).pay(tx, signature);
+    await deelit.connect(alice).pay(tx, signature, ZeroAddress);
 
-    const state = await deelit.payments(paymentHash);
+    const state = await deelit.getPaymentState(paymentHash);
     expect(state.acceptance).to.be.equal(ZeroBytes32);
     expect(state.conflict).to.be.equal(ZeroBytes32);
     expect(state.vesting).to.be.equal(
       BigInt(payment.vesting_period) + BigInt(await time.latest())
     );
     expect(await erc20.balanceOf(deelitAddress)).to.be.equal(100n);
-    expect(await erc20.balanceOf(feeCollectorAddress)).to.be.equal(10n);
+    expect(await erc20.balanceOf(feeRecipientAddress)).to.be.equal(10n);
   });
 
   it("should be able to refund excess native payment", async function () {
-    const { deelit, feeCollector, alice, bob } = await loadFixture(
+    const { deelit, deelitAddress, feeRecipientAddress, alice, bob } = await loadFixture(
       deployDeelitProtocolFixture
     );
-
-    const deelitAddress = await deelit.getAddress();
-    const feeCollectorAddress = await feeCollector.getAddress();
 
     // alice offers 1 eth
     const offer = OfferUtils.builder()
@@ -167,9 +157,9 @@ describe("DeelitProtocol - Payment tests", function () {
       offer,
     };
 
-    await deelit.connect(alice).pay(tx, signature, { value: parseEther("2") });
+    await deelit.connect(alice).pay(tx, signature, ZeroAddress, { value: parseEther("2") });
 
-    const state = await deelit.payments(paymentHash);
+    const state = await deelit.getPaymentState(paymentHash);
     expect(state.acceptance).to.be.equal(ZeroBytes32);
     expect(state.conflict).to.be.equal(ZeroBytes32);
     expect(state.vesting).to.be.equal(
@@ -179,17 +169,14 @@ describe("DeelitProtocol - Payment tests", function () {
       parseEther("1")
     );
     expect(
-      await hre.ethers.provider.getBalance(feeCollectorAddress)
+      await hre.ethers.provider.getBalance(feeRecipientAddress)
     ).to.be.equal(parseEther("0.1"));
   });
 
   it("should be able to make native payment with shipment", async function () {
-    const { deelit, feeCollector, alice, bob } = await loadFixture(
+    const { deelit, deelitAddress, feeRecipientAddress, alice, bob } = await loadFixture(
       deployDeelitProtocolFixture
     );
-
-    const deelitAddress = await deelit.getAddress();
-    const feeCollectorAddress = await feeCollector.getAddress();
 
     // alice offers 1 eth
     const offer = OfferUtils.builder()
@@ -224,9 +211,9 @@ describe("DeelitProtocol - Payment tests", function () {
 
     await deelit
       .connect(alice)
-      .pay(tx, signature, { value: parseEther("1.21") });
+      .pay(tx, signature, ZeroAddress, { value: parseEther("1.21") });
 
-    const state = await deelit.payments(paymentHash);
+    const state = await deelit.getPaymentState(paymentHash);
     expect(state.acceptance).to.be.equal(ZeroBytes32);
     expect(state.conflict).to.be.equal(ZeroBytes32);
     expect(state.vesting).to.be.equal(
@@ -236,19 +223,15 @@ describe("DeelitProtocol - Payment tests", function () {
       parseEther("1.1")
     );
     expect(
-      await hre.ethers.provider.getBalance(feeCollectorAddress)
+      await hre.ethers.provider.getBalance(feeRecipientAddress)
     ).to.be.equal(parseEther("0.11"));
   });
 
   it("should be able to make token payment with shipment", async function () {
-    const { deelit, feeCollector, alice, bob } = await loadFixture(
+    const { deelit, deelitAddress, feeRecipientAddress, alice, bob } = await loadFixture(
       deployDeelitProtocolFixture
     );
-    const { erc20 } = await deployERC20MockFixture();
-
-    const deelitAddress = await deelit.getAddress();
-    const feeCollectorAddress = await feeCollector.getAddress();
-    const erc20Address = await erc20.getAddress();
+    const { erc20, erc20Address } = await deployERC20MockFixture();
 
     // alice offers 100 tokens
     const offer = OfferUtils.builder()
@@ -288,15 +271,15 @@ describe("DeelitProtocol - Payment tests", function () {
     await erc20.connect(alice).approve(deelitAddress, 121n);
 
     // alice pays
-    await deelit.connect(alice).pay(tx, signature);
+    await deelit.connect(alice).pay(tx, signature, ZeroAddress);
 
-    const state = await deelit.payments(paymentHash);
+    const state = await deelit.getPaymentState(paymentHash);
     expect(state.acceptance).to.be.equal(ZeroBytes32);
     expect(state.conflict).to.be.equal(ZeroBytes32);
     expect(state.vesting).to.be.equal(
       BigInt(payment.vesting_period) + BigInt(await time.latest())
     );
     expect(await erc20.balanceOf(deelitAddress)).to.be.equal(110n);
-    expect(await erc20.balanceOf(feeCollectorAddress)).to.be.equal(11n);
+    expect(await erc20.balanceOf(feeRecipientAddress)).to.be.equal(11n);
   });
 });

@@ -2,13 +2,13 @@ import { expect } from "chai";
 import hre from "hardhat";
 import {
   deployERC20MockFixture,
-  deployFeeCollectorFixture,
-} from "./utils/fixtures";
+  deployFeeRecipientFixture,
+} from "../utils/fixtures";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("FeeCollector tests", function () {
+describe("FeeRecipient tests", function () {
   it("should allow withdraw native", async function () {
-    const { feeCollector } = await loadFixture(deployFeeCollectorFixture);
+    const { feeRecipient, feeRecipientAddress } = await loadFixture(deployFeeRecipientFixture);
 
     const [owner, alice] = await hre.ethers.getSigners();
 
@@ -16,10 +16,12 @@ describe("FeeCollector tests", function () {
       alice.address,
     );
 
-    await feeCollector
-      .connect(owner)
-      .collect({ value: hre.ethers.parseEther("3") });
-    await feeCollector
+    owner.sendTransaction({
+      to: feeRecipientAddress,
+      value: hre.ethers.parseEther("3")
+    });
+
+    await feeRecipient
       .connect(owner)
       .withdraw(alice.address, hre.ethers.parseEther("1"));
 
@@ -27,7 +29,7 @@ describe("FeeCollector tests", function () {
       aliceInitialBalance + hre.ethers.parseEther("1"),
     );
 
-    await feeCollector
+    await feeRecipient
       .connect(owner)
       .withdraw(alice.address, hre.ethers.parseEther("2"));
     expect(await hre.ethers.provider.getBalance(alice.address)).to.be.equal(
@@ -36,8 +38,8 @@ describe("FeeCollector tests", function () {
   });
 
   it("should allow withdraw tokens", async function () {
-    const { feeCollector, feeCollectorAddress } = await loadFixture(
-      deployFeeCollectorFixture,
+    const { feeRecipient, feeRecipientAddress } = await loadFixture(
+      deployFeeRecipientFixture,
     );
 
     const { erc20, erc20Address } = await deployERC20MockFixture();
@@ -46,17 +48,17 @@ describe("FeeCollector tests", function () {
 
     await erc20
       .connect(owner)
-      .transfer(feeCollectorAddress, hre.ethers.parseEther("3"));
+      .transfer(feeRecipientAddress, hre.ethers.parseEther("3"));
     const aliceInitialBalance = await erc20.balanceOf(alice.address);
 
-    await feeCollector
+    await feeRecipient
       .connect(owner)
       .withdrawErc20(erc20Address, alice.address, hre.ethers.parseEther("1"));
     expect(await erc20.balanceOf(alice.address)).to.be.equal(
       aliceInitialBalance + hre.ethers.parseEther("1"),
     );
 
-    await feeCollector
+    await feeRecipient
       .connect(owner)
       .withdrawErc20(erc20Address, alice.address, hre.ethers.parseEther("2"));
     expect(await erc20.balanceOf(alice.address)).to.be.equal(

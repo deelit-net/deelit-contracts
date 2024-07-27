@@ -18,6 +18,8 @@ describe("LibBp", function () {
 			expect(await lib.bp(100, 10)).to.equal(0); // 0.1% of 100
 			expect(await lib.bp(0, 10_00)).to.equal(0); // 10% of 0
 			expect(await lib.bp(100, 0)).to.equal(0); // 0% of 100
+
+			expect(await lib.bp(10_00, 21)).to.equal(2); // 2.1% of 1000
 		});
 	})
 });

@@ -58,7 +58,6 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         __Pausable_init();
         __EIP712_init("deelit.net", "1");
         __TransfertManager_init(fees_);
-        __Context_init();
         __UUPSUpgradeable_init();
     }
 
@@ -89,7 +88,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         _verifySignature(tx_.payment.from_address, paymentHash, paymentSignature);
 
         // update payment state
-        $_payment.payer = refundAddress != address(0) ? refundAddress: _msgSender(); // if no refund address, use the sender as payer
+        $_payment.payer = refundAddress != address(0) ? refundAddress: msg.sender; // if no refund address, use the sender as payer
         $_payment.vesting= block.timestamp + tx_.payment.vesting_period;
 
         // process payment
@@ -143,7 +142,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         require($_payment.conflict == bytes32(0), "DeelitProtocol: Payment in conflict");
 
         // verify signature if not called by payer
-        if (_msgSender() != acceptance.from_address) {
+        if (msg.sender != acceptance.from_address) {
             _verifySignature(acceptance.from_address, acceptanceHash, acceptanceSignature);
         }
 
@@ -178,7 +177,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         require($_payment.verdict == bytes32(0), "DeelitProtocol: Payment already resolved");
 
         // verify conflict signature if caller not originator
-        if (_msgSender() != conflict_.from_address) {
+        if (msg.sender != conflict_.from_address) {
             _verifySignature(conflict_.from_address, conflictHash, conflictSignature);
         }
 
@@ -205,7 +204,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         require($_payment.verdict == bytes32(0), "DeelitProtocol: Payment already resolved");
 
         // verify signature if not called by judge
-        if (_msgSender() != verdict.from_address) {
+        if (msg.sender != verdict.from_address) {
             _verifySignature(verdict.from_address, verdictHash, signature);
         }
 

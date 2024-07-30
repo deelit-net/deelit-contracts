@@ -66,7 +66,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     modifier onlyWinner(bytes32 lotteryHash) {
-        require(_msgSender() == _winner(lotteryHash), "Lottery: only winner can call");
+        require(msg.sender == _winner(lotteryHash), "Lottery: only winner can call");
         _;
     }
 
@@ -79,7 +79,6 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         __AccessManaged_init(address(manager_));
         __RandomConsumer_init(randomProducer_);
         __Pausable_init();
-        __Context_init();
         __FeeCollector_init(fees);
         __UUPSUpgradeable_init();
 
@@ -137,7 +136,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $_lottery.status = LotteryStatus.Open;
 
         // log event
-        emit Created(lotteryHash, lottery, _msgSender());
+        emit Created(lotteryHash, lottery, msg.sender);
     }
 
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool) {
@@ -158,8 +157,8 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         // update state
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         $_lottery.ticketCount++;
-        $_lottery.participants[$_lottery.ticketCount] = _msgSender();
-        $_lottery.tickets[_msgSender()] = $_lottery.ticketCount;
+        $_lottery.participants[$_lottery.ticketCount] = msg.sender;
+        $_lottery.tickets[msg.sender] = $_lottery.ticketCount;
 
         // process payment
         if (lottery.token_address == address(0)) {
@@ -169,7 +168,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // log event
-        emit Participated(lotteryHash, _msgSender());
+        emit Participated(lotteryHash, msg.sender);
     }
 
     function _doParticipateNative(LibLottery.Lottery calldata lottery) private {
@@ -179,16 +178,16 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         // refund excess value
         uint256 rest = msg.value - totalWithFees;
         if (rest > 0) {
-            payable(_msgSender()).sendValue(rest);
+            payable(msg.sender).sendValue(rest);
         }
     }
 
     function _doParticipateErc20(IERC20 token, LibLottery.Lottery calldata lottery) private {
         uint256 totalWithFees = LibLottery.calculateParticipation(lottery);
-        require(token.allowance(_msgSender(), address(this)) >= totalWithFees, "Lottery: insufficient allowance");
+        require(token.allowance(msg.sender, address(this)) >= totalWithFees, "Lottery: insufficient allowance");
 
         // transfer token
-        token.safeTransferFrom(_msgSender(), address(this), totalWithFees);
+        token.safeTransferFrom(msg.sender, address(this), totalWithFees);
     }
 
     function redeem(LibLottery.Lottery calldata lottery, address participant) external override whenNotPaused {
@@ -224,8 +223,8 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         require(!_isCanceled(lotteryHash), "Lottery: already canceled");
 
         // if not expire and not the lottery creator, check if admin
-        if (lottery.expiration_time > block.timestamp && lottery.from_address != _msgSender()) {
-            (bool isAdmin, ) = IAccessManager(authority()).hasRole(LibAccess.ADMIN_ROLE, _msgSender());
+        if (lottery.expiration_time > block.timestamp && lottery.from_address != msg.sender) {
+            (bool isAdmin, ) = IAccessManager(authority()).hasRole(LibAccess.ADMIN_ROLE, msg.sender);
             require(isAdmin, "Lottery: not admin");
         }
 
@@ -234,7 +233,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $_lottery.status = LotteryStatus.Canceled;
 
         // log event
-        emit Canceled(lotteryHash, _msgSender());
+        emit Canceled(lotteryHash, msg.sender);
     }
 
     function draw(LibLottery.Lottery calldata lottery) external payable override whenNotPaused {

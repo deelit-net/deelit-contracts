@@ -3,7 +3,8 @@
 pragma solidity 0.8.24;
 
 import {IRandomProducer} from "./interfaces/IRandomProducer.sol";
-import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import {IAccessManager} from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
+import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 import {VRFV2PlusWrapperConsumerBase} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFV2PlusWrapperConsumerBase.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
@@ -13,7 +14,7 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
  * @notice A contract that produce random words through the Chainlink VRF service with native or Link payment.
  * @custom:security-contact dev@deelit.net
  */
-contract RandomProducer is IRandomProducer, VRFV2PlusWrapperConsumerBase, ConfirmedOwner {
+contract RandomProducer is IRandomProducer, VRFV2PlusWrapperConsumerBase, AccessManaged {
     event RequestSent(uint256 requestId);
     event RequestFulfilled(uint256 requestId, uint256 randomWord, uint256 payment);
 
@@ -38,25 +39,22 @@ contract RandomProducer is IRandomProducer, VRFV2PlusWrapperConsumerBase, Confir
     // function.
     uint32 public callbackGasLimit;
 
-    // The address of the VRFV2PlusWrapper contract
-    address public wrapperAddress;
-
     constructor(
+        IAccessManager manager_,
         address wrapperAddress_,
         uint32 callbackGasLimit_,
         uint16 requestConfirmations_
-    ) ConfirmedOwner(msg.sender) VRFV2PlusWrapperConsumerBase(wrapperAddress) {
-        wrapperAddress = wrapperAddress_;
+    ) AccessManaged(address(manager_)) VRFV2PlusWrapperConsumerBase(wrapperAddress_) {
         callbackGasLimit = callbackGasLimit_;
         requestConfirmations = requestConfirmations_;
     }
 
-    function setWrapperAddress(address _wrapperAddress) external onlyOwner {
-        wrapperAddress = _wrapperAddress;
+    function setCallbackGasLimit(uint32 _callbackGasLimit) external restricted {
+        callbackGasLimit = _callbackGasLimit;
     }
 
-    function setCallbackGasLimit(uint32 _callbackGasLimit) external onlyOwner {
-        callbackGasLimit = _callbackGasLimit;
+    function setRequestConfirmations(uint16 _requestConfirmations) external restricted {
+        requestConfirmations = _requestConfirmations;
     }
 
     function requestRandomWord() external payable returns (uint256 requestId, uint256 reqPrice) {

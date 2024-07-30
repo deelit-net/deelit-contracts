@@ -8,11 +8,11 @@ async function main() {
     throw new Error("ACCESS_MANAGER_ADDRESS is required");
   }
 
-  const feeCollectorFactory = await ethers.getContractFactory("FeeCollector");
-  const feeCollector = await upgrades.deployProxy(feeCollectorFactory, [ACCESS_MANAGER_ADDRESS]);
-  const feeCollectorAddress = await feeCollector.getAddress();
+  const feeRecipientFactory = await ethers.getContractFactory("FeeRecipient");
+  const feeRecipient = await upgrades.deployProxy(feeRecipientFactory, [ACCESS_MANAGER_ADDRESS]);
+  const feeRecipientAddress = await feeRecipient.getAddress();
 
-  console.log(`FeeCollector deployed at: ${feeCollectorAddress}`);
+  console.log(`FeeRecipient deployed at: ${feeRecipientAddress}`);
 }
 
 main()

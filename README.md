@@ -62,21 +62,21 @@ docker run -v $(pwd):/tmp mythril/myth analyze /tmp/contracts/DeelitProtocol.sol
 
 ## Mainet
 
-| Network | DeelitProtocol | FeeCollector | AccessManager |
-|---|---|---|---|
-| Ethereum |  |  |  |
-| Base |  |  |  |
-| OP |  |  |  |
-| Arbitrium |  |  |  |
-| Binance Smart Chain |  |  |  |
+| Network | DeelitProtocol | Lottery | FeeRecipient | AccessManager | RandomProducer |
+|---|---|---|---|---|---|
+| Ethereum |  |  |  |  |  |
+| Base |  |  |  |  |  |
+| OP |  |  |  |  |  |
+| Arbitrium |  |  |  |  |  |
+| Binance Smart Chain |  |  |  |  |  |
 
 ## Testnet
 
-| Network | DeelitProtocol | FeeCollector | AccessManager |
-|---|---|---|---|
-| Sepolia | [0xf189f0fB4EDba8b5d039032758F85411dfb883A0](https://sepolia.etherscan.io/address/0xf189f0fB4EDba8b5d039032758F85411dfb883A0) |[0x11E133f8CFA43bdF03Ff406dAfc82B3D49493783](https://sepolia.etherscan.io/address/0x11E133f8CFA43bdF03Ff406dAfc82B3D49493783) |  |
-| Base Sepolia | [0x33e0758300F1f16c2A31C4c077354B968E8F7d7F](https://sepolia.basescan.org/address/0x33e0758300F1f16c2A31C4c077354B968E8F7d7F) | [0x3192a82B96E16302Dc11359a4dAE64a1C05a1c0B](https://sepolia.basescan.org/address/0x3192a82b96e16302dc11359a4dae64a1c05a1c0b) |  |
-| OP Sepolia |  |  |  |
-| Arbitrium Sepolia |  |  |  |
-| Binance Smart Chain Testnet |  |  |  |
+| Network | DeelitProtocol | Lottery | FeeRecipient | AccessManager | RandomProducer |
+|---|---|---|---|---|---|
+| Sepolia | [0x3b504CEBf11E428dc5c7d206a78Af1Be9D760c25](https://sepolia.etherscan.io/address/) |  | [0x6D42CCBD3de554B8C0e10F0d29335636E22a7EDE](https://sepolia.etherscan.io/address/0x6D42CCBD3de554B8C0e10F0d29335636E22a7EDE) | [0xAAfb15E31d9ad1be145f7CF169B1b5DdD10680e6](https://sepolia.etherscan.io/address/0xAAfb15E31d9ad1be145f7CF169B1b5DdD10680e6) |  |
+| Base Sepolia | [0xA4f8E7233d347F5433b3A48848Ca3cB2CbA5B158](https://sepolia.basescan.org/address/0xA4f8E7233d347F5433b3A48848Ca3cB2CbA5B158) |  | [0xC22421d305CB2a3F40c5A163a916Ad432612535C](https://sepolia.basescan.org/address/0xC22421d305CB2a3F40c5A163a916Ad432612535C) | [0x75359d1b02731c15FAD3929D5476C40ED3EB3F62](https://sepolia.basescan.org/address/0x75359d1b02731c15FAD3929D5476C40ED3EB3F62) |  |
+| OP Sepolia | [0xDAD6383114E80439848555c1853bdEcfD3854815](https://sepolia-optimism.etherscan.io/address/0xDAD6383114E80439848555c1853bdEcfD3854815) |  | [0x4Ce5929aa1968e224C3C2d17c5d50F2928913b4A](https://sepolia-optimism.etherscan.io/address/0x4Ce5929aa1968e224C3C2d17c5d50F2928913b4A) | [0x9422Ad012B94db3e6B0702b4AD4Ad1BE5CC9366e](https://sepolia-optimism.etherscan.io/address/0x9422Ad012B94db3e6B0702b4AD4Ad1BE5CC9366e) |  |
+| Arbitrium Sepolia |  |  |  |  |  |
+| Binance Smart Chain Testnet |  |  |  |  |  |
 

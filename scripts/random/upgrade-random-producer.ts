@@ -9,11 +9,11 @@ async function main() {
     }
 
     // Deploy the contract using upgrades.deployProxy
-    const feeCollectorfactory = await ethers.getContractFactory("FeeCollector");
-    const feeCollector = await upgrades.upgradeProxy(PROXY_ADDRESS, feeCollectorfactory)
-    const feeCollectorAddress = await feeCollector.getAddress();
+    const randomProducerfactory = await ethers.getContractFactory("RandomProducer");
+    const randomProducer = await upgrades.upgradeProxy(PROXY_ADDRESS, randomProducerfactory)
+    const randomProducerAddress = await randomProducer.getAddress();
 
-    console.log(`FeeCollector deployed at: ${feeCollectorAddress}`);
+    console.log(`RandomProducer deployed at: ${randomProducerAddress}`);
   
   }
   

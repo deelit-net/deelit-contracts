@@ -15,6 +15,11 @@
       "address": "0x3b504CEBf11E428dc5c7d206a78Af1Be9D760c25",
       "txHash": "0xa8294748430c49278ac9913ae346322c9bc897cb9170a2dd613141bba7f84e40",
       "kind": "uups"
+    },
+    {
+      "address": "0x0b47c007777c73119b0db616FcFce0e17F0B485b",
+      "txHash": "0x05e1d8b5c909b95d0f3d7f68d5ff63406ef794f328bda62fae6eb7bd8184a6b5",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -669,6 +674,373 @@
               "label": "fees",
               "type": "t_struct(Fee)1571_storage",
               "src": "contracts/fee/FeeCollector.sol:20",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "946ddee0658d0b433b28b487229282c1eb22a511a36d7b483f3fae08347b4323": {
+      "address": "0x673Cb6b3aE5e11e9B4EACA8903A2380d471E0B57",
+      "txHash": "0x0d2f760090cf218030f7a45431fd846d2cb34381d1380b6a8119f5482d877a4a",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IAccessManager)494": {
+            "label": "contract IAccessManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDeelitProtocol)2062": {
+            "label": "contract IDeelitProtocol",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRandomProducer)2110": {
+            "label": "contract IRandomProducer",
+            "numberOfBytes": "20"
+          },
+          "t_enum(LotteryStatus)1771": {
+            "label": "enum ILottery.LotteryStatus",
+            "members": [
+              "None",
+              "Open",
+              "Drawn",
+              "Paid",
+              "Canceled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(LotteryState)1652_storage)": {
+            "label": "mapping(bytes32 => struct Lottery.LotteryState)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessManagedStorage)26_storage": {
+            "label": "struct AccessManagedUpgradeable.AccessManagedStorage",
+            "members": [
+              {
+                "label": "_authority",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_consumingSchedule",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(BitMap)1195_storage": {
+            "label": "struct BitMaps.BitMap",
+            "members": [
+              {
+                "label": "_data",
+                "type": "t_mapping(t_uint256,t_uint256)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Fee)1407_storage": {
+            "label": "struct LibFee.Fee",
+            "members": [
+              {
+                "label": "recipient",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount_bp",
+                "type": "t_uint48",
+                "offset": 20,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(FeeCollectorStorage)1271_storage": {
+            "label": "struct FeeCollector.FeeCollectorStorage",
+            "members": [
+              {
+                "label": "fees",
+                "type": "t_struct(Fee)1407_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)69_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(LotteryState)1652_storage": {
+            "label": "struct Lottery.LotteryState",
+            "members": [
+              {
+                "label": "status",
+                "type": "t_enum(LotteryStatus)1771",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "randomRequestId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "cachedWinner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "paymentHash",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "verdictHash",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "ticketCount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "tickets",
+                "type": "t_mapping(t_address,t_uint256)",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "participants",
+                "type": "t_mapping(t_uint256,t_address)",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "redeemed",
+                "type": "t_struct(BitMap)1195_storage",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_struct(LotteryStorage)1667_storage": {
+            "label": "struct Lottery.LotteryStorage",
+            "members": [
+              {
+                "label": "_manager",
+                "type": "t_contract(IAccessManager)494",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_protocol",
+                "type": "t_contract(IDeelitProtocol)2062",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_protocolDomainSeparator",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "_lotteries",
+                "type": "t_mapping(t_bytes32,t_struct(LotteryState)1652_storage)",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(PausableStorage)197_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RandomConsumerStorage)2076_storage": {
+            "label": "struct RandomConsumer.RandomConsumerStorage",
+            "members": [
+              {
+                "label": "randomProducer",
+                "type": "t_contract(IRandomProducer)2110",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint48": {
+            "label": "uint48",
+            "numberOfBytes": "6"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "erc7201:deelit.storage.Lottery": [
+            {
+              "contract": "Lottery",
+              "label": "_manager",
+              "type": "t_contract(IAccessManager)494",
+              "src": "contracts/lottery/Lottery.sol:53",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Lottery",
+              "label": "_protocol",
+              "type": "t_contract(IDeelitProtocol)2062",
+              "src": "contracts/lottery/Lottery.sol:54",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "Lottery",
+              "label": "_protocolDomainSeparator",
+              "type": "t_bytes32",
+              "src": "contracts/lottery/Lottery.sol:55",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "Lottery",
+              "label": "_lotteries",
+              "type": "t_mapping(t_bytes32,t_struct(LotteryState)1652_storage)",
+              "src": "contracts/lottery/Lottery.sol:56",
+              "offset": 0,
+              "slot": "3"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessManaged": [
+            {
+              "contract": "AccessManagedUpgradeable",
+              "label": "_authority",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "AccessManagedUpgradeable",
+              "label": "_consumingSchedule",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol:26",
+              "offset": 20,
+              "slot": "0"
+            }
+          ],
+          "erc7201:deelit.storage.FeeCollector": [
+            {
+              "contract": "FeeCollector",
+              "label": "fees",
+              "type": "t_struct(Fee)1407_storage",
+              "src": "contracts/fee/FeeCollector.sol:20",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:deelit.storage.RandomConsumer": [
+            {
+              "contract": "RandomConsumer",
+              "label": "randomProducer",
+              "type": "t_contract(IRandomProducer)2110",
+              "src": "contracts/random/RandomConsumer.sol:13",
               "offset": 0,
               "slot": "0"
             }

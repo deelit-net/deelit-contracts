@@ -322,7 +322,7 @@ describe("DeelitProtocol - Claim tests", function () {
       // bob claims the payment for bob after vesting period
       // bob tries to claim the payment again
 
-      const { deelit, bob, charlie, payment, paymentHash, offer } =
+      const { deelit, charlie, payment, offer } =
         await loadFixture(deployDeelitProtocolWithInitialPaymentFixture);
 
       const tx: LibTransaction.TransactionStruct = {

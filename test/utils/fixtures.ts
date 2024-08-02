@@ -17,13 +17,14 @@ import { LibTransaction } from "../../typechain-types/contracts/lottery/Lottery"
 
 const PAUSE_SELECTOR = "0x8456cb59";
 const UNPAUSE_SELECTOR = "0x3f4ba83a";
+const ADMIN_ROLE = 0n;
+const PAUSER_ROLE = 1n;
+const JUDGE_ROLE = 2n;
+const RANDOM_CONSUMER_ROLE = 3n;
 
 export async function deployAccessManagerFixture() {
   const [owner] = await hre.ethers.getSigners();
 
-  const ADMIN_ROLE = 0n;
-  const PAUSER_ROLE = 1n;
-  const JUDGE_ROLE = 2n;
 
   const factory = await hre.ethers.getContractFactory("DeelitAccessManager");
   const accessManager = (await upgrades.deployProxy(factory, [
@@ -216,19 +217,17 @@ export async function deployDeelitTokenFixture() {
 
 export async function deployRandomProducerMockFixture() {
   const [owner] = await hre.ethers.getSigners();
-  const randomRequestPrice = hre.ethers.parseEther("0.1");
 
   const randomProducerMock = await hre.ethers.deployContract(
     "RandomProducerMock",
-    [randomRequestPrice, 0],
+    [0],
   );
   const randomProducerMockAddress = await randomProducerMock.getAddress();
 
   return {
     randomProducerMock,
     randomProducerMockAddress,
-    owner,
-    randomRequestPrice,
+    owner
   };
 }
 

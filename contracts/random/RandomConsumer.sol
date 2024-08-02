@@ -53,15 +53,11 @@ abstract contract RandomConsumer is Initializable {
 
     function _requestRandomNumber() internal returns (uint256) {
         _checkRandomProducer();
-        // notice that you need to ensure that randomProducer refund the excess payment
-        (uint256 requestId, uint256 reqPrice) = _getRandomProducer().requestRandomWord{value: msg.value}();
-        if (msg.value > reqPrice) {
-            payable(msg.sender).transfer(msg.value - reqPrice);
-        }
-        return requestId;
+        
+        return _getRandomProducer().requestRandomWord();
     }
 
-    function _getRequestStatus(uint256 _requestId) internal view returns (uint256 paid, bool fulfilled, uint256 randomWord) {
+    function _getRequestStatus(uint256 _requestId) internal view returns (bool fulfilled, uint256 randomWord) {
         _checkRandomProducer();
         return _getRandomProducer().getRequestStatus(_requestId);
     }

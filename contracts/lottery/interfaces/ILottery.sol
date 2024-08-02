@@ -114,10 +114,9 @@ interface ILottery {
 
     /**
      * @dev Initiates the drawing process to determine the lottery winner.
-     * This function is payable so a random number can be requested from a Chainlink VRF Coordinator.
      * @param lottery Struct containing the lottery details
      */
-    function draw(LibLottery.Lottery calldata lottery) external payable;
+    function draw(LibLottery.Lottery calldata lottery) external;
 
     /**
      * @dev Pays out the lottery prize through the Deelit protocol.

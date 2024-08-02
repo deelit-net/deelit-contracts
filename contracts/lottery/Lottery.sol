@@ -236,7 +236,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Canceled(lotteryHash, msg.sender);
     }
 
-    function draw(LibLottery.Lottery calldata lottery) external payable override whenNotPaused {
+    function draw(LibLottery.Lottery calldata lottery) external override whenNotPaused {
         bytes32 lotteryHash = LibLottery.hash(lottery);
 
         require(!_isCanceled(lotteryHash), "Lottery: canceled");
@@ -339,7 +339,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // try to retreive winner from random producer
-        (, bool fullfilled, uint256 randomWord) = _getRequestStatus($_lottery.randomRequestId);
+        (bool fullfilled, uint256 randomWord) = _getRequestStatus($_lottery.randomRequestId);
         require(fullfilled, "Lottery: random number not yet fullfilled");
 
         uint256 winnerTicket = (randomWord % $_lottery.ticketCount) + 1; // random btw 1 and ticketCount

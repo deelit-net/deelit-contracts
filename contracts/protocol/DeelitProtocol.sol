@@ -195,7 +195,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // retrieve payment state
         PaymentState storage $_payment = _getPayment(paymentHash);
 
-        (bool isIssuerJudge, ) = IAccessManager( authority()).hasRole(LibAccess.JUDGE_ROLE, verdict.from_address);
+        (bool isIssuerJudge, ) = IAccessManager(authority()).hasRole(LibAccess.JUDGE_ROLE, verdict.from_address);
         require(isIssuerJudge, "DeelitProtocol: Invalid verdict issuer");
         require(verdict.payment_hash == paymentHash, "DeelitProtocol: Invalid verdict payment hash");
         require($_payment.payer != address(0), "DeelitProtocol: Payment not paid");

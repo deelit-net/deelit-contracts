@@ -9,5 +9,6 @@ library LibAccess {
     uint64 constant public ADMIN_ROLE = 0;
     uint64 constant public PAUSER_ROLE = 1;
     uint64 constant public JUDGE_ROLE = 2;
+    uint64 constant public RANDOM_CONSUMER_ROLE = 3;
     
 }  

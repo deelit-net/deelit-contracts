@@ -9,8 +9,8 @@ pragma solidity 0.8.24;
  */
 interface IRandomProducer {
     
-    function requestRandomWord() external payable returns (uint256 requestId, uint256 reqPrice);
+    function requestRandomWord() external returns (uint256 requestId);
 
-    function getRequestStatus(uint256 _requestId) external view returns (uint256 paid, bool fulfilled, uint256 randomWord);
+    function getRequestStatus(uint256 _requestId) external view returns (bool fulfilled, uint256 randomWord);
 
 }

@@ -204,7 +204,7 @@ describe("Lottery", function () {
       await expect(
         lottery
           .connect(owner)
-          .draw(lotteryDetails, { value: randomRequestPrice }),
+          .draw(lotteryDetails),
       ).to.emit(lottery, "Drawn");
 
       expect(await lottery.getLotteryStatus(lotteryHash)).to.deep.equal([
@@ -259,7 +259,7 @@ describe("Lottery", function () {
       await expect(
         lottery
           .connect(owner)
-          .draw(lotteryDetails, { value: randomRequestPrice }),
+          .draw(lotteryDetails),
       ).to.be.revertedWith("Lottery: not filled");
     });
   });
@@ -321,7 +321,7 @@ describe("Lottery", function () {
       // Draw the lottery
       await lottery
         .connect(owner)
-        .draw(lotteryDetails, { value: randomRequestPrice });
+        .draw(lotteryDetails);
 
       // Compute the winner
       await lottery.winner(lotteryHash);
@@ -461,7 +461,7 @@ describe("Lottery", function () {
       // Draw the lottery
       await lottery
         .connect(owner)
-        .draw(lotteryDetails, { value: randomRequestPrice });
+        .draw(lotteryDetails);
 
       // Try to cancel
       await expect(

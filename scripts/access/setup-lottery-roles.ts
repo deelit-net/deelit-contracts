@@ -32,7 +32,7 @@ async function main() {
     PAUSER_ROLE,
   );
   console.log(
-    `Role PAUSER_ROLE ${PAUSER_ROLE} set to PROTOCOL ${LOTTERY_ADDRESS}`,
+    `Role PAUSER_ROLE ${PAUSER_ROLE} set to LOTTERY ${LOTTERY_ADDRESS}`,
   );
 
   await accessManager.setTargetFunctionRole(

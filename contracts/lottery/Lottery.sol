@@ -85,7 +85,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         _setProtocol(protocol_);
     }
 
-    function getProlotocol() external view returns (IDeelitProtocol) {
+    function getProtocol() external view returns (IDeelitProtocol) {
         return _getProtocol();
     }
 

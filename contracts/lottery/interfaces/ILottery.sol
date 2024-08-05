@@ -55,8 +55,9 @@ interface ILottery {
     /**
      * @dev Emitted when the lottery prize is paid out.
      * @param lotteryHash Hash of the lottery
+     * @param paymentHash Hash of the payment details
      */
-    event Paid(bytes32 indexed lotteryHash);
+    event Paid(bytes32 indexed lotteryHash, bytes32 indexed paymentHash);
 
     /**
      * @dev Emitted when a conflict is registered for a lottery.

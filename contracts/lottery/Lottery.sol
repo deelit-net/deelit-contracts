@@ -264,7 +264,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     /// @dev Important! The protocol payment requester is responsible to align transaction inputs with the lottery datas.
     /// !WARNING! Note that we do not check the offer price versus the lottery price here.
     /// It is not an issue for native payment because even if the protocol attempt to refund the excess payments, the transaction will failed cause the lottery contract is not a payable.
-    /// For ERC20 payment, the protocol may have to check so we prevent loosing tokens.
+    /// For ERC20 payment, we may implement a check so we prevent locking tokens on this contract.
     function pay(
         LibLottery.Lottery calldata lottery,
         LibTransaction.Transaction calldata transaction,
@@ -303,7 +303,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // log event
-        emit Paid(lotteryHash);
+        emit Paid(lotteryHash, paymentHash);
     }
 
     function isPaid(bytes32 lotteryHash) external view override returns (bool) {

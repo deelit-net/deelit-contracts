@@ -28,9 +28,8 @@ interface ILottery {
      * @dev Emitted when a new lottery is created.
      * @param lotteryHash Hash of the lottery
      * @param lottery Struct containing lottery details
-     * @param creator Address of the lottery creator
      */
-    event Created(bytes32 indexed lotteryHash, LibLottery.Lottery lottery, address creator);
+    event Created(bytes32 indexed lotteryHash, LibLottery.Lottery lottery);
 
     /**
      * @dev Emitted when a user participates in a lottery.
@@ -40,17 +39,17 @@ interface ILottery {
     event Participated(bytes32 indexed lotteryHash, address participant);
 
     /**
-     * @dev Emitted when a lottery is canceled.
-     * @param lotteryHash Hash of the lottery
-     * @param canceler Address of the account that canceled the lottery
-     */
-    event Canceled(bytes32 indexed lotteryHash, address canceler);
-
-    /**
      * @dev Emitted when a lottery winner is drawn.
      * @param lotteryHash Hash of the lottery
      */
     event Drawn(bytes32 indexed lotteryHash);
+
+    /**
+     * @dev Emitted when a lottery winner is determined.
+     * @param lotteryHash Hash of the lottery
+     * @param winner Address of the lottery winner
+     */
+    event Won(bytes32 indexed lotteryHash, address winner);
 
     /**
      * @dev Emitted when the lottery prize is paid out.
@@ -60,18 +59,11 @@ interface ILottery {
     event Paid(bytes32 indexed lotteryHash, bytes32 indexed paymentHash);
 
     /**
-     * @dev Emitted when a conflict is registered for a lottery.
+     * @dev Emitted when a lottery is canceled.
      * @param lotteryHash Hash of the lottery
-     * @param conflictHash Hash of the conflict details
+     * @param canceler Address of the account that canceled the lottery
      */
-    event ConflictRegistered(bytes32 indexed lotteryHash, bytes32 indexed conflictHash);
-
-    /**
-     * @dev Emitted when an acceptance is registered for a lottery.
-     * @param lotteryHash Hash of the lottery
-     * @param acceptanceHash Hash of the acceptance details
-     */
-    event AcceptanceRegistered(bytes32 indexed lotteryHash, bytes32 indexed acceptanceHash);
+    event Canceled(bytes32 indexed lotteryHash, address canceler);
 
     /**
      * @dev Emitted when a participant redeems their tickets after a lottery is canceled.
@@ -79,13 +71,6 @@ interface ILottery {
      * @param participant Address of the participant redeeming their tickets
      */
     event Redeemed(bytes32 indexed lotteryHash, address participant);
-
-    /**
-     * @dev Emitted when a lottery winner is determined.
-     * @param lotteryHash Hash of the lottery
-     * @param winner Address of the lottery winner
-     */
-    event Won(bytes32 indexed lotteryHash, address winner);
 
     /**
      * @dev Creates a new lottery.

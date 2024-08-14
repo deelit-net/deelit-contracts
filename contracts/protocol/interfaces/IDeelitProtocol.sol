@@ -14,10 +14,36 @@ import {IERC5267} from "@openzeppelin/contracts/interfaces/IERC5267.sol";
 /// @custom:security-contact dev@deelit.net
 interface IDeelitProtocol is IERC5267 {
     
-    event Payed(bytes32 indexed paymentHash_);
-    event Claimed(bytes32 indexed paymentHash_, bytes32 indexed acceptanceHash_);
-    event Conflicted(bytes32 indexed paymentHash_, bytes32 indexed conflictHash_);
-    event Verdicted(bytes32 indexed paymentHash_, bytes32 indexed verdictHash_);
+    /**
+     * @dev Emitted when the protocol receives a payment.
+     * @param paymentHash Hash of the payment
+     * @param tx_ The transaction details
+     */
+    event Payed(bytes32 indexed paymentHash, LibTransaction.Transaction tx_);
+
+    /**
+     * @dev Emitted when a payment is claimed.
+     * @param paymentHash Hash of the payment
+     * @param acceptanceHash Hash of the acceptance
+     * @param acceptance The acceptance details
+     */
+    event Claimed(bytes32 indexed paymentHash, bytes32 indexed acceptanceHash, LibAcceptance.Acceptance acceptance);
+
+    /**
+     * @dev Emitted when a payment is claimed with an acceptance signature.
+     * @param paymentHash Hash of the payment
+     * @param conflictHash Hash of the conflict
+     * @param conflict The conflict details
+     */
+    event Conflicted(bytes32 indexed paymentHash, bytes32 indexed conflictHash, LibConflict.Conflict conflict);
+
+    /**
+     * @dev Emitted when a conflict is resolved.
+     * @param paymentHash Hash of the payment
+     * @param verdictHash Hash of the verdict
+     * @param verdict The verdict details
+     */
+    event Verdicted(bytes32 indexed paymentHash, bytes32 indexed verdictHash, LibVerdict.Verdict verdict);
 
     /// @notice Initiate a payment.
     /// @param tx_ the payment and offer details

@@ -94,7 +94,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // process payment
         _doPay(tx_);
 
-        emit Payed(paymentHash);
+        emit Payed(paymentHash, tx_);
     }
 
     function claim(LibTransaction.Transaction calldata tx_) external whenNotPaused {
@@ -118,7 +118,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // process claim payment
         _doClaim(tx_);
 
-        emit Claimed(paymentHash, AUTO_ACCEPTANCE);
+        emit Claimed(paymentHash, AUTO_ACCEPTANCE, LibAcceptance.Acceptance(address(0),0));
     }
 
     function claimAccepted(
@@ -152,7 +152,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // process claim payment
         _doClaim(tx_);
 
-        emit Claimed(paymentHash, acceptanceHash);
+        emit Claimed(paymentHash, acceptanceHash, acceptance);
     }
 
     function conflict(
@@ -184,7 +184,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // update payment state
         $_payment.conflict = conflictHash;
 
-        emit Conflicted(paymentHash, conflictHash);
+        emit Conflicted(paymentHash, conflictHash, conflict_);
     }
 
     function resolve(LibTransaction.Transaction calldata tx_, LibVerdict.Verdict calldata verdict, bytes calldata signature) external whenNotPaused {
@@ -214,7 +214,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // process verdict
         _doResolve(tx_, verdict, $_payment.payer);
 
-        emit Verdicted(paymentHash, verdictHash);
+        emit Verdicted(paymentHash, verdictHash, verdict);
     }
 
     function getPaymentState(bytes32 paymentHash) external view returns (PaymentState memory) {

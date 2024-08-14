@@ -136,7 +136,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $_lottery.status = LotteryStatus.Open;
 
         // log event
-        emit Created(lotteryHash, lottery, msg.sender);
+        emit Created(lotteryHash, lottery);
     }
 
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool) {

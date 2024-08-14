@@ -29,7 +29,7 @@ async function main() {
     PAUSER_ROLE,
   );
   console.log(
-    `Role PAUSER_ROLE ${PAUSER_ROLE} set to PROTOCOL ${PROTOCOL_ADDRESS}`,
+    `Set function PAUSE_SELECTOR ${PAUSE_SELECTOR} and UNPAUSE_SELECTOR ${UNPAUSE_SELECTOR} to PAUSER_ROLE ${PAUSER_ROLE} for PROTOCOL ${PROTOCOL_ADDRESS}`
   );
 }
 

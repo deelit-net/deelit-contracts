@@ -63,4 +63,6 @@ pnpm hardhat verify --network xxxx 0xLOTTERY
 ACCESS_MANAGER_ADDRESS=0xMANAGER LOTTERY_ADDRESS=0xLOTTERY npx hardhat run --network xxxx scripts/access/setup-lottery-roles.ts
 
 ACCESS_MANAGER_ADDRESS=0xMANAGER PROTOCOL_ADDRESS=0xPROTOCOL npx hardhat run --network xxxx scripts/access/setup-protocol-roles.ts
+
+ACCESS_MANAGER_ADDRESS=0xMANAGER RANDOM_PRODUCER_ADDRESS=0xRANDOM npx hardhat run --network xxxx scripts/access/setup-random-producer-roles.ts
 ```

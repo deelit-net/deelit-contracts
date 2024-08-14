@@ -251,10 +251,13 @@ export async function deployLotteryFixture() {
     lotteryFees
   ])) as BaseContract as Lottery;
 
+  const lotteryAddress = await lottery.getAddress();
+
   return {
     ...deelitProtocolFixture,
     ...randomProducerMockFixture,
     lottery,
+    lotteryAddress,
     owner,
     participant1,
     participant2,

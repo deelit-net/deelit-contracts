@@ -50,7 +50,7 @@ export const PaymentUtils = {
     ethers.TypedDataEncoder.hash(
       domain(domainVerifyingContract),
       PaymentTypedData,
-      payment
+      payment,
     ),
   typedData: PaymentTypedData,
 };
@@ -66,7 +66,7 @@ export const OfferUtils = {
     ethers.TypedDataEncoder.hash(
       domain(domainVerifyingContract),
       OfferTypedData,
-      offer
+      offer,
     ),
   typedData: OfferTypedData,
 };
@@ -80,12 +80,12 @@ export const AcceptanceUtils = {
   }),
   hash: (
     acceptance: LibAcceptance.AcceptanceStruct,
-    domainVerifyingContract: string
+    domainVerifyingContract: string,
   ) =>
     ethers.TypedDataEncoder.hash(
       domain(domainVerifyingContract),
       AcceptanceTypedData,
-      acceptance
+      acceptance,
     ),
   typedData: AcceptanceTypedData,
 };
@@ -99,12 +99,12 @@ export const ConflictUtils = {
   }),
   hash: (
     conflict: LibConflict.ConflictStruct,
-    domainVerifyingContract: string
+    domainVerifyingContract: string,
   ) =>
     ethers.TypedDataEncoder.hash(
       domain(domainVerifyingContract),
       ConflictTypedData,
-      conflict
+      conflict,
     ),
   typedData: ConflictTypedData,
 };
@@ -115,24 +115,29 @@ export const DefaultVerdict = {
   payer_bp: 0,
   payee_bp: 0,
 };
+
 export const VerdictUtils = {
   builder: () => new VerdictBuilder(),
   hash: async (
     verdict: LibVerdict.VerdictStruct,
-    domainVerifyingContract: string
+    domainVerifyingContract: string,
   ) =>
     ethers.TypedDataEncoder.hash(
       domain(domainVerifyingContract),
       VerdictTypedData,
-      verdict
+      verdict,
     ),
   typedData: VerdictTypedData,
 };
 
 export const LotteryUtils = {
-  hash : (lottery: LibLottery.LotteryStruct) => 
-    ethers.TypedDataEncoder.hashStruct("Lottery", LotteryTypedData, lottery),
-}
+  hash: (lottery: LibLottery.LotteryStruct, domainVerifyingContract: string) =>
+    ethers.TypedDataEncoder.hash(
+      domain(domainVerifyingContract),
+      LotteryTypedData,
+      lottery,
+    ),
+};
 
 export function calculateFee(amount: bigint, fee: bigint): bigint {
   return (amount * fee) / 10000n;

@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {IAccessManager} from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ILottery, LibTransaction, LibVerdict} from "./interfaces/ILottery.sol";
@@ -22,12 +22,11 @@ import {FeeCollector, LibFee} from "../fee/FeeCollector.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-
 /// @title Lottery
 /// @author d0x4545lit
 /// @notice Lottery contract to manage lottery creation, participation, drawing and payment.
 /// @custom:security-contact dev@deelit.net
-contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgradeable, EIP712Upgradeable, PausableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
     using Address for address payable;
     using Math for uint256;
@@ -78,6 +77,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     function initialize(IAccessManager manager_, IDeelitProtocol protocol_, IRandomProducer randomProducer_, LibFee.Fee calldata fees) public initializer {
         __AccessManaged_init(address(manager_));
         __RandomConsumer_init(randomProducer_);
+        __EIP712_init("deelit.net", "1");
         __Pausable_init();
         __FeeCollector_init(fees);
         __UUPSUpgradeable_init();
@@ -122,7 +122,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function createLottery(LibLottery.Lottery calldata lottery) external whenNotPaused returns (bytes32 lotteryHash) {
-        lotteryHash = LibLottery.hash(lottery);
+        lotteryHash = _hash(LibLottery.hash(lottery));
 
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         require($_lottery.status == LotteryStatus.None, "Lottery: lottery already exists");
@@ -140,7 +140,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool) {
-        return _isFilled(LibLottery.hash(lottery), lottery);
+        return _isFilled(_hash(LibLottery.hash(lottery)), lottery);
     }
 
     function _isFilled(bytes32 lotteryHash, LibLottery.Lottery calldata lottery) internal view returns (bool) {
@@ -149,7 +149,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function participate(LibLottery.Lottery calldata lottery) external payable override whenNotPaused {
-        bytes32 lotteryHash = LibLottery.hash(lottery);
+        bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_exist(lotteryHash), "Lottery: lottery not found");
         require(!_isCanceled(lotteryHash), "Lottery: canceled");
         require(!_isFilled(lotteryHash, lottery), "Lottery: already filled");
@@ -191,7 +191,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function redeem(LibLottery.Lottery calldata lottery, address participant) external override whenNotPaused {
-        bytes32 lotteryHash = LibLottery.hash(lottery);
+        bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_isCanceled(lotteryHash), "Lottery: not canceled");
         require(_isParticipant(lotteryHash, participant), "Lottery: not participant");
         require(!_isRedeemed(lotteryHash, participant), "Lottery: already redeemed");
@@ -217,7 +217,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function cancel(LibLottery.Lottery calldata lottery) external override whenNotPaused {
-        bytes32 lotteryHash = LibLottery.hash(lottery);
+        bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_exist(lotteryHash), "Lottery: lottery not found");
         require(!_isDrawn(lotteryHash), "Lottery: already drawn");
         require(!_isCanceled(lotteryHash), "Lottery: already canceled");
@@ -237,7 +237,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     }
 
     function draw(LibLottery.Lottery calldata lottery) external override whenNotPaused {
-        bytes32 lotteryHash = LibLottery.hash(lottery);
+        bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
 
         require(!_isCanceled(lotteryHash), "Lottery: canceled");
         require(!_isDrawn(lotteryHash), "Lottery: already drawn");
@@ -270,7 +270,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         LibTransaction.Transaction calldata transaction,
         bytes calldata paymentSignature
     ) external override whenNotPaused {
-        bytes32 lotteryHash = LibLottery.hash(lottery);
+        bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         address winner_ = _winner(lotteryHash); //  _winner(lotteryHash) also check if lottery is drawn.
 
         require(!_isCanceled(lotteryHash), "Lottery: canceled");
@@ -374,9 +374,17 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         return $_lottery.status != LotteryStatus.None;
     }
 
-    function _protocolHash(bytes32 structHash_) internal view returns (bytes32) {
+    /// @dev Compute the hash of a data structure following EIP-712 spec.
+    /// @param structHash the structHash(message) to hash
+    function _hash(bytes32 structHash) private view returns (bytes32) {
+        return _hashTypedDataV4(structHash);
+    }
+
+    /// @dev Compute the hash of a data structure following EIP-712 spec for the DeelitProtocol contract.
+    /// @param structHash the structHash(message) to hash
+    function _protocolHash(bytes32 structHash) internal view returns (bytes32) {
         LotteryStorage storage $ = _getLotteryStorage();
-        return LibEIP712.hashTypedDataV4($._protocolDomainSeparator, structHash_);
+        return LibEIP712.hashTypedDataV4($._protocolDomainSeparator, structHash);
     }
 
     /// @dev Authorize an upgrade of the protocol. Only the admin can authorize an upgrade.
@@ -393,10 +401,4 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     function unpause() external restricted {
         _unpause();
     }
-
-    /// @dev receive ether needed cause the randomProducer contract refund the excess payment
-    receive() external payable {
-        // nothing to do
-    }
-    
 }

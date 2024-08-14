@@ -56,7 +56,7 @@ describe("Lottery", function () {
 
   describe("Lottery Participation", function () {
     it("Should allow participation in an open lottery", async function () {
-      const { lottery, participant1, lotteryFees, protocolFees } =
+      const { lottery, lotteryAddress, participant1, lotteryFees, protocolFees } =
         await loadFixture(deployLotteryFixture);
 
       // // Create a lottery first
@@ -85,7 +85,7 @@ describe("Lottery", function () {
         lotteryDetails.ticket_price + protocolFeePrice + lotteryFeePrice;
 
       await lottery.createLottery(lotteryDetails);
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails);
+      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
 
       await expect(
         lottery
@@ -157,10 +157,10 @@ describe("Lottery", function () {
     it("Should successfully draw a winner for a filled lottery", async function () {
       const {
         lottery,
+        lotteryAddress,
         owner,
         participant1,
         participant2,
-        randomRequestPrice,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
@@ -191,7 +191,7 @@ describe("Lottery", function () {
 
       await lottery.createLottery(lotteryDetails);
 
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails);
+      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
 
       // Participate in the lottery
       await lottery
@@ -219,7 +219,6 @@ describe("Lottery", function () {
         lottery,
         owner,
         participant1,
-        randomRequestPrice,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
@@ -268,14 +267,13 @@ describe("Lottery", function () {
     it("Should successfully pay out the lottery prize", async function () {
       const {
         lottery,
+        lotteryAddress,
         owner,
         participant1,
         participant2,
         participant3,
-        randomRequestPrice,
         deelit,
         deelitAddress,
-        randomProducerMock,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
@@ -305,7 +303,7 @@ describe("Lottery", function () {
         lotteryDetails.ticket_price + protocolFeePrice + lotteryFeePrice;
 
       await lottery.createLottery(lotteryDetails);
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails);
+      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
 
       // Participate in the lottery
       await lottery
@@ -371,7 +369,7 @@ describe("Lottery", function () {
       ).to.emit(lottery, "Paid");
 
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails)),
+        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
       ).to.deep.equal([LOTTERY_PAID_STATUS, 3, winner]);
 
       const paymentState = await deelit.getPaymentState(PaymentUtils.hash(payment, deelitAddress));
@@ -385,7 +383,7 @@ describe("Lottery", function () {
 
   describe("Lottery Cancellation", function () {
     it("Should allow cancellation by admin", async function () {
-      const { lottery, owner, participant1, lotteryFees, protocolFees } =
+      const { lottery, lotteryAddress, owner, lotteryFees, protocolFees } =
         await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
@@ -409,7 +407,7 @@ describe("Lottery", function () {
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails)),
+        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 0, ZeroAddress]);
     });
 
@@ -419,7 +417,6 @@ describe("Lottery", function () {
         owner,
         participant1,
         participant2,
-        randomRequestPrice,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
@@ -496,7 +493,7 @@ describe("Lottery", function () {
     });
 
     it("Should allow cancelation if expiration time reached", async function () {
-      const { lottery, owner, participant1, lotteryFees, protocolFees } =
+      const { lottery, lotteryAddress, owner, participant1, lotteryFees, protocolFees } =
         await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
@@ -523,14 +520,14 @@ describe("Lottery", function () {
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails)),
+        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 0, ZeroAddress]);
     });
   });
 
   describe("Ticket Redemption", function () {
     it("Should allow ticket redemption for a cancelled lottery", async function () {
-      const { lottery, owner, participant1, lotteryFees, protocolFees } =
+      const { lottery, lotteryAddress, owner, participant1, lotteryFees, protocolFees } =
         await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
@@ -576,7 +573,7 @@ describe("Lottery", function () {
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails)),
+        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 1, ZeroAddress]);
 
       // check balance

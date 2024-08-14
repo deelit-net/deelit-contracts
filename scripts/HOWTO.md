@@ -26,6 +26,7 @@ pnpm hardhat verify --network xxxx 0xPROTOCOL
 
 4. deploy random producer
 
+a. Chainlink VRF producer 
 - Create a VRF subsciption on the related network at https://vrf.chain.link/
 - Retreive the subscription ID
 - Find the coordinator address and gas line key hash at https://docs.chain.link/vrf/v2-5/supported-networks#polygon-matic-mainnet
@@ -34,6 +35,17 @@ pnpm hardhat verify --network xxxx 0xPROTOCOL
 ACCESS_MANAGER_ADDRESS=0xMANAGER COORDINATOR_ADDRESS=0xCOORDINATOR SUBSCRIPTION_ID=SUB_ID GAS_LANE_KEY_HASH=0xGASLINE CALLBACK_GAS_LIMIT=100000 REQUEST_CONFIRMATIONS=3 npx hardhat run --network xxxx scripts/random/deploy-random-producer-chainlink-vrf-v25.ts
 
 pnpm hardhat verify --network xxxx 0xRANDOM --constructor-args args.js
+```
+
+b. gelato random producer
+- Create a VRF task on the related network at https://app.gelato.network/
+- Retreive the "Dedicated message sender"
+
+
+```
+ACCESS_MANAGER_ADDRESS=0xMANAGER GELATO_OPERATO_ADDRESS=0x0000000000000000000000000000000000000000 npx hardhat run --network baseSepolia scripts/random/deploy-random-producer-gelato-vrf.ts
+
+pnpm hardhat verify --network xxxx 0xRANDOM 0xMANAGER 0x0000000000000000000000000000000000000000
 ```
 
 

@@ -303,7 +303,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // log event
-        emit Paid(lotteryHash, paymentHash);
+        emit Paid(lotteryHash, transaction);
     }
 
     function isPaid(bytes32 lotteryHash) external view override returns (bool) {

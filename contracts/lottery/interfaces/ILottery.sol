@@ -54,9 +54,9 @@ interface ILottery {
     /**
      * @dev Emitted when the lottery prize is paid out.
      * @param lotteryHash Hash of the lottery
-     * @param paymentHash Hash of the payment details
+     * @param transaction Transaction details with offer and payment details
      */
-    event Paid(bytes32 indexed lotteryHash, bytes32 indexed paymentHash);
+    event Paid(bytes32 indexed lotteryHash, LibTransaction.Transaction transaction);
 
     /**
      * @dev Emitted when a lottery is canceled.

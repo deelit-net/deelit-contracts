@@ -4,7 +4,6 @@ import { DeelitAccessManager } from "../../typechain-types";
 const ACCESS_MANAGER_ADDRESS = process.env.ACCESS_MANAGER_ADDRESS;
 const LOTTERY_ADDRESS = process.env.LOTTERY_ADDRESS;
 
-const REQUEST_RANDOM_WORD_SELECTOR = "0x0a01fb9e";
 const RANDOM_CONSUMER_ROLE = 3n;
 
 const PAUSE_SELECTOR = "0x8456cb59";

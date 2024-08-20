@@ -42,8 +42,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         bytes32 verdictHash; // protocol verdict hash
         // tickets infos
         uint256 ticketCount;
-        mapping(address => uint256) tickets; // participants to ticket indexes mapping
-        mapping(uint256 => address) participants; // ticket indexes to participants mapping. note: index starts at 1
+        mapping(uint256 => address) tickets; // ticket number to participants mapping. note: index starts at 1
         BitMaps.BitMap redeemed; // tickets redeemed bitmap
     }
 
@@ -111,16 +110,6 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         _setRandomProducer(randomProducer);
     }
 
-    function _getLotteryState(bytes32 lotteryHash) internal view returns (LotteryState storage) {
-        LotteryStorage storage $ = _getLotteryStorage();
-        return $._lotteries[lotteryHash];
-    }
-
-    function getLotteryStatus(bytes32 lotteryHash) external view override returns (LotteryStatus, uint256, address) {
-        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        return ($_lottery.status, $_lottery.ticketCount, $_lottery.cachedWinner);
-    }
-
     function createLottery(LibLottery.Lottery calldata lottery) external whenNotPaused returns (bytes32 lotteryHash) {
         lotteryHash = _hash(LibLottery.hash(lottery));
 
@@ -157,8 +146,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         // update state
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         $_lottery.ticketCount++;
-        $_lottery.participants[$_lottery.ticketCount] = msg.sender;
-        $_lottery.tickets[msg.sender] = $_lottery.ticketCount;
+        $_lottery.tickets[$_lottery.ticketCount] = msg.sender;
 
         // process payment
         if (lottery.token_address == address(0)) {
@@ -168,7 +156,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // log event
-        emit Participated(lotteryHash, msg.sender);
+        emit Participated(lotteryHash, $_lottery.ticketCount, msg.sender);
     }
 
     function _doParticipateNative(LibLottery.Lottery calldata lottery) private {
@@ -190,21 +178,21 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         token.safeTransferFrom(msg.sender, address(this), totalWithFees);
     }
 
-    function redeem(LibLottery.Lottery calldata lottery, address participant) external override whenNotPaused {
+    function redeem(LibLottery.Lottery calldata lottery, uint256 ticketNumber) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_isCanceled(lotteryHash), "Lottery: not canceled");
-        require(_isParticipant(lotteryHash, participant), "Lottery: not participant");
-        require(!_isRedeemed(lotteryHash, participant), "Lottery: already redeemed");
+        require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
+        require(!_isRedeemed(lotteryHash, ticketNumber), "Lottery: already redeemed");
 
         // update state
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        uint256 ticketIndex = $_lottery.tickets[participant];
-        BitMaps.set($_lottery.redeemed, ticketIndex);
+        BitMaps.set($_lottery.redeemed, ticketNumber);
 
         // calculate redemption
         uint256 totalWithFees = LibLottery.calculateParticipation(lottery);
 
         // process redemption
+        address participant = $_lottery.tickets[ticketNumber];
         if (lottery.token_address == address(0)) {
             payable(participant).sendValue(totalWithFees);
         } else {
@@ -213,7 +201,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         // log event
-        emit Redeemed(lotteryHash, participant);
+        emit Redeemed(lotteryHash, ticketNumber, participant);
     }
 
     function cancel(LibLottery.Lottery calldata lottery) external override whenNotPaused {
@@ -252,13 +240,6 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $_lottery.randomRequestId = requestId;
 
         emit Drawn(lotteryHash);
-    }
-
-    function _isDrawn(bytes32 lotteryHash) internal view returns (bool) {
-        require(_exist(lotteryHash), "Lottery: lottery not found");
-
-        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        return $_lottery.randomRequestId > 0;
     }
 
     /// @dev Important! The protocol payment requester is responsible to align transaction inputs with the lottery datas.
@@ -306,22 +287,63 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Paid(lotteryHash, transaction);
     }
 
-    function isPaid(bytes32 lotteryHash) external view override returns (bool) {
-        return _isPaid(lotteryHash);
+
+    function _getLotteryState(bytes32 lotteryHash) internal view returns (LotteryState storage) {
+        LotteryStorage storage $ = _getLotteryStorage();
+        return $._lotteries[lotteryHash];
     }
+
+    function getLotteryStatus(bytes32 lotteryHash) external view override returns (LotteryStatus, uint256, address) {
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return ($_lottery.status, $_lottery.ticketCount, $_lottery.cachedWinner);
+    }
+
+    function getTicketOwner(bytes32 lotteryHash, uint256 ticketNumber) external view returns (address) {
+        require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return $_lottery.tickets[ticketNumber];
+    }  
 
     function _isPaid(bytes32 lotteryHash) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.status == LotteryStatus.Paid;
     }
 
-    function isCanceled(bytes32 lotteryHash) external view override returns (bool) {
-        return _isCanceled(lotteryHash);
+    function _isDrawn(bytes32 lotteryHash) internal view returns (bool) {
+        require(_exist(lotteryHash), "Lottery: lottery not found");
+
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return $_lottery.randomRequestId > 0;
     }
 
     function _isCanceled(bytes32 lotteryHash) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.status == LotteryStatus.Canceled;
+    }
+
+    function isTicket(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool) {
+        return _isTicket(lotteryHash, ticketNumber);
+    }
+
+    function _isTicket(bytes32 lotteryHash, uint256 ticketNumber) internal view returns (bool) {
+        require(_exist(lotteryHash), "Lottery: lottery not found");
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return $_lottery.tickets[ticketNumber] != address(0);
+    }
+
+    function isRedeemed(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool) {
+        return _isRedeemed(lotteryHash, ticketNumber);
+    }
+
+    function _isRedeemed(bytes32 lotteryHash, uint256 ticketNumber) internal view returns (bool) {
+        require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return BitMaps.get($_lottery.redeemed, ticketNumber);
+    }
+
+    function _exist(bytes32 lotteryHash) internal view returns (bool) {
+        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
+        return $_lottery.status != LotteryStatus.None;
     }
 
     function winner(bytes32 lotteryHash) external returns (address) {
@@ -343,35 +365,10 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         require(fullfilled, "Lottery: random number not yet fullfilled");
 
         uint256 winnerTicket = (randomWord % $_lottery.ticketCount) + 1; // random btw 1 and ticketCount
-        $_lottery.cachedWinner = $_lottery.participants[winnerTicket];
+        $_lottery.cachedWinner = $_lottery.tickets[winnerTicket];
 
         emit Won(lotteryHash, $_lottery.cachedWinner);
         return $_lottery.cachedWinner;
-    }
-
-    function isParticipant(bytes32 lotteryHash, address participant) external view returns (bool) {
-        return _isParticipant(lotteryHash, participant);
-    }
-
-    function _isParticipant(bytes32 lotteryHash, address participant) internal view returns (bool) {
-        require(_exist(lotteryHash), "Lottery: lottery not found");
-        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        return $_lottery.tickets[participant] > 0;
-    }
-
-    function isRedeemed(bytes32 lotteryHash, address participant) external view returns (bool) {
-        return _isRedeemed(lotteryHash, participant);
-    }
-
-    function _isRedeemed(bytes32 lotteryHash, address participant) internal view returns (bool) {
-        require(_isParticipant(lotteryHash, participant), "Lottery: not participant");
-        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        return BitMaps.get($_lottery.redeemed, $_lottery.tickets[participant]);
-    }
-
-    function _exist(bytes32 lotteryHash) internal view returns (bool) {
-        LotteryState storage $_lottery = _getLotteryState(lotteryHash);
-        return $_lottery.status != LotteryStatus.None;
     }
 
     /// @dev Compute the hash of a data structure following EIP-712 spec.

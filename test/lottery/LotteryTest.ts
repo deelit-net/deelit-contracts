@@ -13,10 +13,12 @@ import {
 import { deployLotteryFixture } from "../utils/fixtures";
 import {
   A_DAY,
-  calculateFee, domain,
-  LotteryUtils, OfferUtils,
+  calculateFee,
+  domain,
+  LotteryUtils,
+  OfferUtils,
   PaymentUtils,
-  ZeroBytes32
+  ZeroBytes32,
 } from "../utils/utils";
 
 const LOTTERY_NONE_STATUS = 0;
@@ -56,8 +58,13 @@ describe("Lottery", function () {
 
   describe("Lottery Participation", function () {
     it("Should allow participation in an open lottery", async function () {
-      const { lottery, lotteryAddress, participant1, lotteryFees, protocolFees } =
-        await loadFixture(deployLotteryFixture);
+      const {
+        lottery,
+        lotteryAddress,
+        participant1,
+        lotteryFees,
+        protocolFees,
+      } = await loadFixture(deployLotteryFixture);
 
       // // Create a lottery first
       const lotteryDetails = {
@@ -85,7 +92,10 @@ describe("Lottery", function () {
         lotteryDetails.ticket_price + protocolFeePrice + lotteryFeePrice;
 
       await lottery.createLottery(lotteryDetails);
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
+      const lotteryHash = await LotteryUtils.hash(
+        lotteryDetails,
+        lotteryAddress,
+      );
 
       await expect(
         lottery
@@ -93,10 +103,81 @@ describe("Lottery", function () {
           .participate(lotteryDetails, { value: ticketTotalPrice }),
       )
         .to.emit(lottery, "Participated")
-        .withArgs(lotteryHash, participant1.address);
+        .withArgs(lotteryHash, 1n, participant1.address);
 
-      expect(await lottery.isParticipant(lotteryHash, participant1.address)).to
-        .be.true;
+      expect(await lottery.isTicket(lotteryHash, 1n)).to.be.true;
+
+      expect(await lottery.getTicketOwner(lotteryHash, 1n)).to.be.equal(
+        participant1.address,
+      );
+    });
+
+    it("Should allow to participate more than once ", async function () {
+      const {
+        lottery,
+        lotteryAddress,
+        participant1,
+        lotteryFees,
+        protocolFees,
+      } = await loadFixture(deployLotteryFixture);
+
+      // // Create a lottery first
+      const lotteryDetails = {
+        from_address: participant1.address,
+        nb_tickets: 4,
+        ticket_price: hre.ethers.parseEther("1"),
+        product_hash: hre.ethers.keccak256(
+          hre.ethers.toUtf8Bytes("lotteryDetails"),
+        ),
+        token_address: ZeroAddress,
+        fee: lotteryFees,
+        protocol_fee: protocolFees,
+        expiration_time: new Date().getTime() + A_DAY, // T + 1 day
+      };
+
+      const protocolFeePrice = calculateFee(
+        lotteryDetails.ticket_price,
+        BigInt(protocolFees.amount_bp),
+      );
+      const lotteryFeePrice = calculateFee(
+        lotteryDetails.ticket_price,
+        BigInt(lotteryFees.amount_bp),
+      );
+      const ticketTotalPrice =
+        lotteryDetails.ticket_price + protocolFeePrice + lotteryFeePrice;
+
+      await lottery.createLottery(lotteryDetails);
+      const lotteryHash = await LotteryUtils.hash(
+        lotteryDetails,
+        lotteryAddress,
+      );
+
+      await expect(
+        lottery
+          .connect(participant1)
+          .participate(lotteryDetails, { value: ticketTotalPrice }),
+      )
+        .to.emit(lottery, "Participated")
+        .withArgs(lotteryHash, 1n, participant1.address);
+
+      await expect(
+        lottery
+          .connect(participant1)
+          .participate(lotteryDetails, { value: ticketTotalPrice }),
+      )
+        .to.emit(lottery, "Participated")
+        .withArgs(lotteryHash, 2n, participant1.address);
+
+      expect(await lottery.isTicket(lotteryHash, 1n)).to.be.true;
+
+      expect(await lottery.getTicketOwner(lotteryHash, 1n)).to.be.equal(
+        participant1.address,
+      );
+      expect(await lottery.isTicket(lotteryHash, 2n)).to.be.true;
+
+      expect(await lottery.getTicketOwner(lotteryHash, 2n)).to.be.equal(
+        participant1.address,
+      );
     });
 
     it("Should not allow participation in a filled lottery", async function () {
@@ -191,7 +272,10 @@ describe("Lottery", function () {
 
       await lottery.createLottery(lotteryDetails);
 
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
+      const lotteryHash = await LotteryUtils.hash(
+        lotteryDetails,
+        lotteryAddress,
+      );
 
       // Participate in the lottery
       await lottery
@@ -201,11 +285,10 @@ describe("Lottery", function () {
         .connect(participant2)
         .participate(lotteryDetails, { value: ticketTotalPrice });
 
-      await expect(
-        lottery
-          .connect(owner)
-          .draw(lotteryDetails),
-      ).to.emit(lottery, "Drawn");
+      await expect(lottery.connect(owner).draw(lotteryDetails)).to.emit(
+        lottery,
+        "Drawn",
+      );
 
       expect(await lottery.getLotteryStatus(lotteryHash)).to.deep.equal([
         LOTTERY_DRAWN_STATUS,
@@ -215,13 +298,8 @@ describe("Lottery", function () {
     });
 
     it("Should not allow drawing for an unfilled lottery", async function () {
-      const {
-        lottery,
-        owner,
-        participant1,
-        lotteryFees,
-        protocolFees,
-      } = await loadFixture(deployLotteryFixture);
+      const { lottery, owner, participant1, lotteryFees, protocolFees } =
+        await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
       const lotteryDetails = {
@@ -256,9 +334,7 @@ describe("Lottery", function () {
 
       // Try to draw
       await expect(
-        lottery
-          .connect(owner)
-          .draw(lotteryDetails),
+        lottery.connect(owner).draw(lotteryDetails),
       ).to.be.revertedWith("Lottery: not filled");
     });
   });
@@ -303,7 +379,10 @@ describe("Lottery", function () {
         lotteryDetails.ticket_price + protocolFeePrice + lotteryFeePrice;
 
       await lottery.createLottery(lotteryDetails);
-      const lotteryHash = await LotteryUtils.hash(lotteryDetails, lotteryAddress);
+      const lotteryHash = await LotteryUtils.hash(
+        lotteryDetails,
+        lotteryAddress,
+      );
 
       // Participate in the lottery
       await lottery
@@ -317,9 +396,7 @@ describe("Lottery", function () {
         .participate(lotteryDetails, { value: ticketTotalPrice });
 
       // Draw the lottery
-      await lottery
-        .connect(owner)
-        .draw(lotteryDetails);
+      await lottery.connect(owner).draw(lotteryDetails);
 
       // Compute the winner
       await lottery.winner(lotteryHash);
@@ -369,10 +446,14 @@ describe("Lottery", function () {
       ).to.emit(lottery, "Paid");
 
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
+        await lottery.getLotteryStatus(
+          await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+        ),
       ).to.deep.equal([LOTTERY_PAID_STATUS, 3, winner]);
 
-      const paymentState = await deelit.getPaymentState(PaymentUtils.hash(payment, deelitAddress));
+      const paymentState = await deelit.getPaymentState(
+        PaymentUtils.hash(payment, deelitAddress),
+      );
       expect(paymentState.payer).to.be.equal(winner);
       expect(paymentState.acceptance).to.be.equal(ZeroBytes32);
       expect(paymentState.conflict).to.be.equal(ZeroBytes32);
@@ -407,7 +488,9 @@ describe("Lottery", function () {
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
+        await lottery.getLotteryStatus(
+          await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+        ),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 0, ZeroAddress]);
     });
 
@@ -456,9 +539,7 @@ describe("Lottery", function () {
         .participate(lotteryDetails, { value: ticketTotalPrice });
 
       // Draw the lottery
-      await lottery
-        .connect(owner)
-        .draw(lotteryDetails);
+      await lottery.connect(owner).draw(lotteryDetails);
 
       // Try to cancel
       await expect(
@@ -493,8 +574,14 @@ describe("Lottery", function () {
     });
 
     it("Should allow cancelation if expiration time reached", async function () {
-      const { lottery, lotteryAddress, owner, participant1, lotteryFees, protocolFees } =
-        await loadFixture(deployLotteryFixture);
+      const {
+        lottery,
+        lotteryAddress,
+        owner,
+        participant1,
+        lotteryFees,
+        protocolFees,
+      } = await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
       const lotteryDetails = {
@@ -520,15 +607,23 @@ describe("Lottery", function () {
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
+        await lottery.getLotteryStatus(
+          await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+        ),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 0, ZeroAddress]);
     });
   });
 
   describe("Ticket Redemption", function () {
     it("Should allow ticket redemption for a cancelled lottery", async function () {
-      const { lottery, lotteryAddress, owner, participant1, lotteryFees, protocolFees } =
-        await loadFixture(deployLotteryFixture);
+      const {
+        lottery,
+        lotteryAddress,
+        owner,
+        participant1,
+        lotteryFees,
+        protocolFees,
+      } = await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
       const lotteryDetails = {
@@ -566,14 +661,16 @@ describe("Lottery", function () {
       const participant1BalanceBefore = await hre.ethers.provider.getBalance(
         participant1.address,
       );
-      await lottery.connect(owner).redeem(lotteryDetails, participant1);
+      await lottery.connect(owner).redeem(lotteryDetails, 1n);
       const participant1BalanceAfter = await hre.ethers.provider.getBalance(
         participant1.address,
       );
 
       // check status
       expect(
-        await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress)),
+        await lottery.getLotteryStatus(
+          await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+        ),
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 1, ZeroAddress]);
 
       // check balance
@@ -582,15 +679,81 @@ describe("Lottery", function () {
       );
     });
 
-    it("Should not allow ticket redemption for an active lottery", async function () {
+    it("Should allow ticket redemption for multiple participation", async function () {
       const {
         lottery,
+        lotteryAddress,
         owner,
         participant1,
-        participant2,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
+
+      // Create a lottery first
+      const lotteryDetails = {
+        from_address: owner.address,
+        nb_tickets: 4,
+        ticket_price: hre.ethers.parseEther("1"),
+        product_hash: hre.ethers.keccak256(
+          hre.ethers.toUtf8Bytes("lotteryDetails"),
+        ),
+        token_address: ZeroAddress,
+        fee: lotteryFees,
+        protocol_fee: protocolFees,
+        expiration_time: new Date().getTime() + A_DAY, // T + 1 day
+      };
+
+      await lottery.createLottery(lotteryDetails);
+
+      // add participants
+      await lottery
+        .connect(participant1)
+        .participate(lotteryDetails, { value: hre.ethers.parseEther("3") });
+      await lottery
+        .connect(participant1)
+        .participate(lotteryDetails, { value: hre.ethers.parseEther("3") });
+      await lottery
+        .connect(participant1)
+        .participate(lotteryDetails, { value: hre.ethers.parseEther("3") });
+
+      // Cancel the lottery
+      await lottery.connect(owner).cancel(lotteryDetails);
+
+      // Redeem ticket
+      const totalParticipation =
+        hre.ethers.parseEther("1") +
+        calculateFee(
+          hre.ethers.parseEther("1"),
+          BigInt(protocolFees.amount_bp),
+        ) +
+        calculateFee(hre.ethers.parseEther("1"), BigInt(lotteryFees.amount_bp));
+
+      const participant1BalanceBefore = await hre.ethers.provider.getBalance(
+        participant1.address,
+      );
+      await lottery.connect(owner).redeem(lotteryDetails, 1n);
+      await lottery.connect(owner).redeem(lotteryDetails, 2n);
+      await lottery.connect(owner).redeem(lotteryDetails, 3n);
+      const participant1BalanceAfter = await hre.ethers.provider.getBalance(
+        participant1.address,
+      );
+
+      // check status
+      expect(
+        await lottery.getLotteryStatus(
+          await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+        ),
+      ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 3, ZeroAddress]);
+
+      // check balance
+      expect(participant1BalanceAfter).to.be.eq(
+        participant1BalanceBefore + (totalParticipation * 3n),
+      );
+    });
+
+    it("Should not allow ticket redemption for an active lottery", async function () {
+      const { lottery, owner, participant1, lotteryFees, protocolFees } =
+        await loadFixture(deployLotteryFixture);
 
       // Create a lottery first
       const lotteryDetails = {
@@ -615,7 +778,7 @@ describe("Lottery", function () {
 
       // Try to redeem ticket
       await expect(
-        lottery.connect(owner).redeem(lotteryDetails, participant1),
+        lottery.connect(owner).redeem(lotteryDetails, 1n),
       ).to.be.revertedWith("Lottery: not canceled");
     });
 
@@ -649,11 +812,11 @@ describe("Lottery", function () {
       await lottery.connect(owner).cancel(lotteryDetails);
 
       // Redeem ticket
-      await lottery.connect(owner).redeem(lotteryDetails, participant1);
+      await lottery.connect(owner).redeem(lotteryDetails, 1n);
 
       // Try to redeem ticket again
       await expect(
-        lottery.connect(owner).redeem(lotteryDetails, participant1),
+        lottery.connect(owner).redeem(lotteryDetails, 1n),
       ).to.be.revertedWith("Lottery: already redeemed");
     });
   });

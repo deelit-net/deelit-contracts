@@ -36,7 +36,14 @@ interface ILottery {
      * @param lotteryHash Hash of the lottery
      * @param participant Address of the participant
      */
-    event Participated(bytes32 indexed lotteryHash, address participant);
+    event Participated(bytes32 indexed lotteryHash, uint256 ticketNumber, address participant);
+
+    /**
+     * @dev Emitted when a participant redeems their tickets after a lottery is canceled.
+     * @param lotteryHash Hash of the lottery
+     * @param participant Address of the participant redeeming their tickets
+     */
+    event Redeemed(bytes32 indexed lotteryHash, uint256 ticketNumber, address participant);
 
     /**
      * @dev Emitted when a lottery winner is drawn.
@@ -66,13 +73,6 @@ interface ILottery {
     event Canceled(bytes32 indexed lotteryHash, address canceler);
 
     /**
-     * @dev Emitted when a participant redeems their tickets after a lottery is canceled.
-     * @param lotteryHash Hash of the lottery
-     * @param participant Address of the participant redeeming their tickets
-     */
-    event Redeemed(bytes32 indexed lotteryHash, address participant);
-
-    /**
      * @dev Creates a new lottery.
      * @param lottery Struct containing the lottery details
      * @return bytes32 The unique identifier (hash) of the created lottery
@@ -88,9 +88,9 @@ interface ILottery {
     /**
      * @dev Allows a participant to redeem their tickets for a refund if the lottery is canceled.
      * @param lottery Struct containing the lottery details
-     * @param participant Address of the participant redeeming their tickets
+     * @param ticket Ticket to redeem
      */
-    function redeem(LibLottery.Lottery calldata lottery, address participant) external;
+    function redeem(LibLottery.Lottery calldata lottery, uint256 ticket) external;
 
     /**
      * @dev Cancels a lottery, allowing participants to redeem their tickets.
@@ -129,20 +129,28 @@ interface ILottery {
     function getLotteryStatus(bytes32 lotteryHash) external view returns (LotteryStatus status, uint256 nbTicketSold, address winner);
 
     /**
-     * @dev Checks if an address is a participant in a specific lottery.
+     * @dev Retrieves the owner of a ticket.
      * @param lotteryHash Hash of the lottery
-     * @param participant Address to check
+     * @param ticketNumber the ticket to check
+     * @return address The address of the ticket owner
+     */
+    function getTicketOwner(bytes32 lotteryHash, uint256 ticketNumber) external view returns (address);
+
+    /**
+     * @dev Checks if an address is a participant in a lottery.
+     * @param lotteryHash Hash of the lottery
+     * @param ticketNumber Ticket number to check
      * @return bool True if the address is a participant, false otherwise
      */
-    function isParticipant(bytes32 lotteryHash, address participant) external view returns (bool);
+    function isTicket(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool);
 
     /**
      * @dev Checks if a participant has redeemed their tickets for a canceled lottery.
      * @param lotteryHash Hash of the lottery
-     * @param participant Address of the participant
+     * @param ticketNumber the ticket to check
      * @return bool True if the participant has redeemed their tickets, false otherwise
      */
-    function isRedeemed(bytes32 lotteryHash, address participant) external view returns (bool);
+    function isRedeemed(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool);
 
     /**
      * @dev Checks if all tickets for a lottery have been sold.
@@ -151,17 +159,4 @@ interface ILottery {
      */
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool);
 
-    /**
-     * @dev Checks if the lottery paid the protocol.
-     * @param lotteryHash Hash of the lottery
-     * @return bool True if the protocol is paid, false otherwise
-     */
-    function isPaid(bytes32 lotteryHash) external view returns (bool);
-
-    /**
-     * @dev Checks if a lottery has been canceled.
-     * @param lotteryHash Hash of the lottery
-     * @return bool True if the lottery is canceled, false otherwise
-     */
-    function isCanceled(bytes32 lotteryHash) external view returns (bool);
 }

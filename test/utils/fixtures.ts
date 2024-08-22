@@ -21,6 +21,7 @@ const ADMIN_ROLE = 0n;
 const PAUSER_ROLE = 1n;
 const JUDGE_ROLE = 2n;
 const RANDOM_CONSUMER_ROLE = 3n;
+const PROTOCOL_MINIMAL_VESTING_PERIOD = 2592000n; // 30 days
 
 export async function deployAccessManagerFixture() {
   const [owner] = await hre.ethers.getSigners();
@@ -248,7 +249,8 @@ export async function deployLotteryFixture() {
     deelitProtocolFixture.accessManagerAddress,
     deelitProtocolFixture.deelitAddress,
     randomProducerMockFixture.randomProducerMockAddress,
-    lotteryFees
+    lotteryFees,
+    PROTOCOL_MINIMAL_VESTING_PERIOD
   ])) as BaseContract as Lottery;
 
   const lotteryAddress = await lottery.getAddress();
@@ -263,6 +265,7 @@ export async function deployLotteryFixture() {
     participant2,
     participant3,
     participant4,
-    lotteryFees
+    lotteryFees,
+    protocolMinVestingPeriod: PROTOCOL_MINIMAL_VESTING_PERIOD
   };
 }

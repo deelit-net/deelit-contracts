@@ -49,14 +49,7 @@ interface ILottery {
      * @dev Emitted when a lottery winner is drawn.
      * @param lotteryHash Hash of the lottery
      */
-    event Drawn(bytes32 indexed lotteryHash);
-
-    /**
-     * @dev Emitted when a lottery winner is determined.
-     * @param lotteryHash Hash of the lottery
-     * @param winner Address of the lottery winner
-     */
-    event Won(bytes32 indexed lotteryHash, address winner);
+    event Drawn(bytes32 indexed lotteryHash, uint256 randomRequestId);
 
     /**
      * @dev Emitted when the lottery prize is paid out.
@@ -113,11 +106,19 @@ interface ILottery {
     function pay(LibLottery.Lottery calldata lottery, LibTransaction.Transaction calldata transaction, bytes calldata paymentSignature) external;
     
     /**
-     * @dev Retrieves the winner of a lottery.
+     * @dev Retrieves the ticket number of the winner of a lottery. Lottery must be in the Drawn state and VFR request must be fulfilled.
      * @param lotteryHash Hash of the lottery
-     * @return address The address of the lottery winner
+     * @return uint256 The ticket number of the winner
      */
-    function winner(bytes32 lotteryHash) external returns (address);
+    function getWinnerTicket(bytes32 lotteryHash) external view returns (uint256);
+
+
+    /**
+     * @dev Retrieves the address of the winner of a lottery. Lottery must be in the Drawn state and VFR request must be fulfilled.
+     * @param lotteryHash Hash of the lottery
+     * @return address The address of the winner
+     */
+    function getWinnerAddress(bytes32 lotteryHash) external view returns (address);
 
     /**
      * @dev Retrieves the current status and number of tickets sold for a lottery.

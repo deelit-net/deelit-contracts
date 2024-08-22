@@ -6,6 +6,7 @@ const PROTOCOL_ADDRESS = process.env.PROTOCOL_ADDRESS;
 const RANDOM_PRODUCER_ADDRESS = process.env.RANDOM_PRODUCER_ADDRESS;
 const FEE_RECIPIENT_ADDRESS = process.env.FEE_RECIPIENT_ADDRESS;
 const FEE_AMOUNT = process.env.FEE_AMOUNT;
+const PROTOCOL_MINIMAL_VESTING_PERIOD = process.env.PROTOCOL_MINIMAL_VESTING_PERIOD;
 
 async function main() {
   if (!ACCESS_MANAGER_ADDRESS) {
@@ -23,6 +24,9 @@ async function main() {
   if (!FEE_AMOUNT) {
     throw new Error("FEE_AMOUNT is required in basis points");
   }
+  if (!PROTOCOL_MINIMAL_VESTING_PERIOD) {
+    throw new Error("PROTOCOL_MINIMAL_VESTING_PERIOD is required");
+  }
 
   const fees: LibFee.FeeStruct = {
     recipient: FEE_RECIPIENT_ADDRESS,
@@ -36,7 +40,8 @@ async function main() {
     ACCESS_MANAGER_ADDRESS,
     PROTOCOL_ADDRESS,
     RANDOM_PRODUCER_ADDRESS,
-    fees
+    fees,
+    PROTOCOL_MINIMAL_VESTING_PERIOD,
   ]);
   const lotteryAddress = await lottery.getAddress();
 

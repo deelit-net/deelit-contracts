@@ -289,11 +289,11 @@ describe("Lottery", function () {
         lottery,
         "Drawn",
       );
-
+      const winnerAddress = await lottery.getWinnerAddress(lotteryHash);
       expect(await lottery.getLotteryStatus(lotteryHash)).to.deep.equal([
         LOTTERY_DRAWN_STATUS,
         2,
-        ZeroAddress,
+        winnerAddress,
       ]);
     });
 
@@ -397,9 +397,6 @@ describe("Lottery", function () {
 
       // Draw the lottery
       await lottery.connect(owner).draw(lotteryDetails);
-
-      // Compute the winner
-      await lottery.winner(lotteryHash);
 
       // Retrieve the winner address
       const [, , winner] = await lottery.getLotteryStatus(lotteryHash);

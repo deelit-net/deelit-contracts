@@ -14,7 +14,7 @@ export class OfferBuilder {
         token_address: "0x0000000000000000000000000000000000000000",
         price: 0,
         shipment_price: 0,
-        shipment_type: 0,
+        shipment_hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
         expiration_time: 0,
       };
     }
@@ -54,8 +54,8 @@ export class OfferBuilder {
       return this;
     }
   
-    withShipmentType(shipment_type: BigNumberish): OfferBuilder {
-      this.offer.shipment_type = shipment_type;
+    withShipmentHash(shipment_hash: BytesLike): OfferBuilder {
+      this.offer.shipment_hash = shipment_hash;
       return this;
     }
   

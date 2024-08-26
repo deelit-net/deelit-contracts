@@ -21,7 +21,7 @@ describe("LibOffer", function () {
 					{ name: 'currency_code', type: 'string' },
 					{ name: 'chain_id', type: 'uint256' },
 					{ name: 'token_address', type: 'address' },
-					{ name: 'shipment_type', type: 'uint8' },
+					{ name: 'shipment_hash', type: 'bytes32' },
 					{ name: 'shipment_price', type: 'uint256' },
 					{ name: 'expiration_time', type: 'uint256' }
 				]
@@ -34,7 +34,7 @@ describe("LibOffer", function () {
 				currency_code: "USDT",
 				chain_id: 1,
 				token_address: "0x0000000000000000000000000000000000000002",
-				shipment_type: 1,
+				shipment_hash: ethers.encodeBytes32String("1"),
 				shipment_price: 10,
 				expiration_time: 100
 			};

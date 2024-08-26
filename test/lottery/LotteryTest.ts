@@ -413,7 +413,7 @@ describe("Lottery", function () {
         currency_code: "ETH", // actually not used
         chain_id: 1, // chain id must match the lottery chain id
         token_address: lotteryDetails.token_address, // token address must match the lottery token address
-        shipment_type: 1, // actually not used
+        shipment_hash: ZeroBytes32, // actually not used
         shipment_price: 0, // shipment price must be 0
         expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
       };
@@ -531,7 +531,7 @@ describe("Lottery", function () {
         currency_code: "ETH", // actually not used
         chain_id: 1, // chain id must match the lottery chain id
         token_address: lotteryDetails.token_address, // token address must match the lottery token address
-        shipment_type: 1, // actually not used
+        shipment_hash: ZeroBytes32, // actually not used
         shipment_price: 0, // shipment price must be 0
         expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
       };

@@ -288,7 +288,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         } else {
             IERC20 erc20 = IERC20(lottery.token_address);
 
-            _collectFeeErc20(erc20, _getFees().recipient, lotteryFee);
+            _collectFeeErc20(erc20, lotteryFee);
 
             erc20.approve(address(_getProtocol()), totalWithProtocolFee);
             _getProtocol().pay(transaction, paymentSignature, winner);

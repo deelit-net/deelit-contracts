@@ -60,11 +60,19 @@ abstract contract FeeCollector is Initializable {
         payable(recipient).sendValue(feeAmount);
     }
 
-    function _collectFeeErc20(IERC20 token, address from, uint256 feeAmount) internal {
-        _collectFeeErc20(token, from, _getFees().recipient, feeAmount);
+    function _collectFeeErc20(IERC20 token, uint256 feeAmount) internal {
+        _collectFeeErc20(token, _getFees().recipient, feeAmount);
     }
 
-    function _collectFeeErc20(IERC20 token, address from, address recipient, uint256 feeAmount) internal {
+    function _collectFeeErc20(IERC20 token, address recipient, uint256 feeAmount) internal {
+        token.safeTransfer(recipient, feeAmount);
+    }
+
+    function _collectFeeErc20From(IERC20 token, address from, uint256 feeAmount) internal {
+        _collectFeeErc20From(token, from, _getFees().recipient, feeAmount);
+    }
+
+    function _collectFeeErc20From(IERC20 token, address from, address recipient, uint256 feeAmount) internal {
         token.safeTransferFrom(from, recipient, feeAmount);
     }
 

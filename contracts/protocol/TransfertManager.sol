@@ -78,7 +78,7 @@ abstract contract TransfertManager is Initializable, FeeCollector, ContextUpgrad
         require(allowance >= amount + feeAmount, "TransfertManager: allowance too low");
 
         // process the payment
-        _collectFeeErc20(token, _msgSender(), feeAmount);
+        _collectFeeErc20From(token, _msgSender(), feeAmount);
         token.safeTransferFrom(_msgSender(), address(this), amount);
     }
 

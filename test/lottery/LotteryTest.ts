@@ -10,7 +10,7 @@ import {
   LibOffer,
   LibPayment,
 } from "../../typechain-types/contracts/lottery/Lottery";
-import { deployLotteryFixture } from "../utils/fixtures";
+import { deployERC20MockFixture, deployLotteryFixture } from "../utils/fixtures";
 import {
   A_DAY,
   calculateFee,
@@ -456,6 +456,111 @@ describe("Lottery", function () {
       expect(paymentState.conflict).to.be.equal(ZeroBytes32);
       expect(paymentState.verdict).to.be.equal(ZeroBytes32);
       expect(paymentState.vesting).to.be.gt(0);
+    });
+
+    it("Should successfully pay out the lottery prize in ERC20", async function () {
+      const {
+        lottery,
+        lotteryAddress,
+        owner,
+        participant1,
+        participant2,
+        participant3,
+        deelit,
+        deelitAddress,
+        lotteryFees,
+        protocolFees,
+      } = await loadFixture(deployLotteryFixture);
+
+      const {erc20, erc20Address} = await deployERC20MockFixture()
+
+      // Create a lottery first
+      const lotteryDetails = {
+        from_address: participant1.address,
+        nb_tickets: 3n,
+        ticket_price: hre.ethers.parseEther("1"),
+        product_hash: hre.ethers.keccak256(
+          hre.ethers.toUtf8Bytes("lotteryDetails"),
+        ),
+        token_address: erc20Address,
+        fee: lotteryFees,
+        protocol_fee: protocolFees,
+        expiration_time: new Date().getTime() + A_DAY, // T + 1 day
+      };
+
+      const feesPrice = calculateFee(
+        lotteryDetails.ticket_price,
+        BigInt(protocolFees.amount_bp) + BigInt(lotteryFees.amount_bp),
+      );
+
+      const ticketTotalPrice = lotteryDetails.ticket_price + feesPrice;
+
+      await lottery.createLottery(lotteryDetails);
+
+      // Participate in the lottery
+      await erc20.connect(owner).transfer(participant1.address, ticketTotalPrice)
+      await erc20.connect(participant1).approve(lotteryAddress, ticketTotalPrice)
+      await erc20.connect(participant1).approve(lotteryAddress, ticketTotalPrice)
+      await lottery.connect(participant1).participate(lotteryDetails);
+
+      await erc20.connect(owner).transfer(participant2.address, ticketTotalPrice)
+      await erc20.connect(participant2).approve(lotteryAddress, ticketTotalPrice)
+      await erc20.connect(participant2).approve(lotteryAddress, ticketTotalPrice)
+      await lottery.connect(participant2).participate(lotteryDetails);
+
+      await erc20.connect(owner).transfer(participant3.address, ticketTotalPrice)
+      await erc20.connect(participant3).approve(lotteryAddress, ticketTotalPrice)
+      await erc20.connect(participant3).approve(lotteryAddress, ticketTotalPrice)
+      await lottery.connect(participant3).participate(lotteryDetails);
+
+      // Draw the lottery
+      await lottery.connect(owner).draw(lotteryDetails);
+
+      // Retrieve the winner address
+      const [, , winner] = await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress));
+
+      // Compute the protocol offer price
+      const offerPrice =
+        lotteryDetails.ticket_price * lotteryDetails.nb_tickets;
+
+      // Pay the lottery
+      const offer: LibOffer.OfferStruct = {
+        from_address: winner, // offer originator is the lottery winner
+        product_hash: lotteryDetails.product_hash, // product hash must match the lottery product hash
+        price: offerPrice, // price must match the total lottery prize minus the protocol fee
+        currency_code: "ETH", // actually not used
+        chain_id: 1, // chain id must match the lottery chain id
+        token_address: lotteryDetails.token_address, // token address must match the lottery token address
+        shipment_type: 1, // actually not used
+        shipment_price: 0, // shipment price must be 0
+        expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+      };
+
+      const payment: LibPayment.PaymentStruct = {
+        from_address: owner.address, // payment originator (might be the lottery owner)
+        destination_address: owner.address,
+        offer_hash: OfferUtils.hash(offer, deelitAddress), // offer hash must match the tx offer hash
+        expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+        vesting_period: 30 * A_DAY, // 30 days
+      };
+
+      const paymentSignature = await owner.signTypedData(
+        domain(deelitAddress),
+        PaymentUtils.typedData,
+        payment,
+      );
+
+      await expect(
+        lottery
+          .connect(owner)
+          .pay(
+            lotteryDetails,
+            { offer: offer, payment: payment },
+            paymentSignature,
+          ),
+      ).to.emit(lottery, "Paid");
+
+
     });
   });
 

@@ -1,17 +1,15 @@
 import { AddressLike, BigNumberish, BytesLike } from "ethers";
 import { LibVerdict } from "../../../typechain-types/contracts/DeelitProtocol";
 
-
 export class VerdictBuilder {
   private verdict: LibVerdict.VerdictStruct;
 
   constructor() {
     this.verdict = {
       from_address: "0x0000000000000000000000000000000000000000",
-      payment_hash:
+      conflict_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      payer_bp: 0,
-      payee_bp: 0,
+      granted: false,
     };
   }
 
@@ -20,18 +18,13 @@ export class VerdictBuilder {
     return this;
   }
 
-  withPaymentHash(payment_hash: BytesLike): VerdictBuilder {
-    this.verdict.payment_hash = payment_hash;
+  withConflictHash(conflict_hash: BytesLike): VerdictBuilder {
+    this.verdict.conflict_hash = conflict_hash;
     return this;
   }
 
-  withPayerBp(payer_bp: BigNumberish): VerdictBuilder {
-    this.verdict.payer_bp = payer_bp;
-    return this;
-  }
-
-  withPayeeBp(payee_bp: BigNumberish): VerdictBuilder {
-    this.verdict.payee_bp = payee_bp;
+  withGranted(granted: boolean): VerdictBuilder {
+    this.verdict.granted = granted;
     return this;
   }
 

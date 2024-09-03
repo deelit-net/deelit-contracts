@@ -13,7 +13,7 @@ import {FeeCollector, LibFee} from "../fee/FeeCollector.sol";
 import {LibTransaction, LibOffer} from "../libraries/LibTransaction.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 import {LibVerdict} from "../libraries/LibVerdict.sol";
-
+import {LibConflict} from "../libraries/LibConflict.sol";
 
 /// @custom:security-contact dev@deelit.net
 abstract contract TransfertManager is Initializable, FeeCollector, ContextUpgradeable {
@@ -99,28 +99,30 @@ abstract contract TransfertManager is Initializable, FeeCollector, ContextUpgrad
         }
     }
 
-    /// @dev Process to the resolution of a conflict. The payment is splitted regarding verdict 'payer_amount' and 'payee_amount'.
+    /// @dev Process to the resolution of a conflict. The payment is transferred to the granted party.
     /// @param tx_ the payment and offer details
+    /// @param conflict the conflict details
     /// @param verdict the verdict details
-    function _doResolve(LibTransaction.Transaction calldata tx_, LibVerdict.Verdict calldata verdict, address payerAddress) internal {
+    function _doResolve(LibTransaction.Transaction calldata tx_, LibConflict.Conflict calldata conflict, LibVerdict.Verdict calldata verdict, address payerAddress) internal {
         // check the verdict amount
         uint256 amount = LibOffer.calculateTotalPrice(tx_.offer);
-        (uint256 payerAmount, uint256 payeeAmount) = LibVerdict.calculateAmounts(amount, verdict);
 
         // define payee and payer
         address payable payee = payable(tx_.payment.destination_address.toAddress());
         address payable payer = payable(payerAddress);
 
+        address payable plaintiff = payable(conflict.from_address);
+        address payable defendant = plaintiff == payee ? payer : payee;
+        address payable grantee = verdict.granted ? plaintiff : defendant;
+
         // transfer the amounts
         if (tx_.offer.token_address == address(0)) {
             // native currency payment
-            payee.sendValue(payerAmount);
-            payer.sendValue(payeeAmount);
+            grantee.sendValue(amount);
         } else {
             // ERC20 payment
             IERC20 token = IERC20(tx_.offer.token_address);
-            token.safeTransfer(payee, payerAmount);
-            token.safeTransfer(payer, payeeAmount);
+            token.safeTransfer(grantee, amount);
         }
     }
 }

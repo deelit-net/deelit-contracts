@@ -5,27 +5,30 @@ import { LibVerdict } from "../../typechain-types/contracts/DeelitProtocol";
 import { VerdictTypedData } from "../utils/types";
 
 describe("LibVerdict", function () {
-	let lib: LibVerdictMock;
+  let lib: LibVerdictMock;
 
-	before(async () => {
-		lib = await hre.ethers.deployContract("LibVerdictMock");
-	});
-	
-	describe("should hash struct verdict", () => {
-		it("should hash struct verdict", async () => {
-			const types = VerdictTypedData;
+  before(async () => {
+    lib = await hre.ethers.deployContract("LibVerdictMock");
+  });
 
-			const verdict: LibVerdict.VerdictStruct = {
-				from_address: "0x0000000000000000000000000000000000000001",
-				payment_hash: ethers.encodeBytes32String("1"),
-				payer_bp: 10_00,
-				payee_bp: 90_00,
-			};
+  describe("should hash struct verdict", () => {
+    it("should hash struct verdict", async () => {
+      const types = VerdictTypedData;
 
-			const hash = await lib.hash(verdict);
-			const ethersHash = ethers.TypedDataEncoder.hashStruct("Verdict", types, verdict);
-			
-			expect(hash).to.equal(ethersHash);
-		});
-	})
+      const verdict: LibVerdict.VerdictStruct = {
+        from_address: "0x0000000000000000000000000000000000000001",
+        conflict_hash: ethers.encodeBytes32String("1"),
+        granted: true,
+      };
+
+      const hash = await lib.hash(verdict);
+      const ethersHash = ethers.TypedDataEncoder.hashStruct(
+        "Verdict",
+        types,
+        verdict,
+      );
+
+      expect(hash).to.equal(ethersHash);
+    });
+  });
 });

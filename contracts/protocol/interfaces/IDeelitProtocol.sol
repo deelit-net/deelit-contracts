@@ -13,7 +13,6 @@ import {IERC5267} from "@openzeppelin/contracts/interfaces/IERC5267.sol";
 /// @dev This interface define the main functions of the Deelit Protocol.
 /// @custom:security-contact dev@deelit.net
 interface IDeelitProtocol is IERC5267 {
-    
     /**
      * @dev Emitted when the protocol receives a payment.
      * @param paymentHash Hash of the payment
@@ -60,11 +59,7 @@ interface IDeelitProtocol is IERC5267 {
     /// @param tx_ the payment and offer details
     /// @param acceptance the acceptance details
     /// @param acceptanceSignature the acceptance signature (optional if called by payer)
-    function claimAccepted(
-        LibTransaction.Transaction calldata tx_,
-        LibAcceptance.Acceptance calldata acceptance,
-        bytes calldata acceptanceSignature
-    ) external;
+    function claimAccepted(LibTransaction.Transaction calldata tx_, LibAcceptance.Acceptance calldata acceptance, bytes calldata acceptanceSignature) external;
 
     /// @notice Initiate a conflict on a payment.
     /// @dev The signature is required if the caller is not the conflict initiator.
@@ -76,9 +71,15 @@ interface IDeelitProtocol is IERC5267 {
     /// @notice Resolve a conflict on a payment.
     /// @dev The signature is required if the caller is not the conflict resolver.
     /// @param tx_ the payment and offer details
+    /// @param conflict_ the conflict details
     /// @param verdict the verdict details
     /// @param verdictSignature the verdict signature
-    function resolve(LibTransaction.Transaction calldata tx_, LibVerdict.Verdict calldata verdict, bytes calldata verdictSignature) external;
+    function resolve(
+        LibTransaction.Transaction calldata tx_,
+        LibConflict.Conflict calldata conflict_,
+        LibVerdict.Verdict calldata verdict,
+        bytes calldata verdictSignature
+    ) external;
 
     /// @notice Get the status of a payment.
     /// @param paymentHash the payment hash

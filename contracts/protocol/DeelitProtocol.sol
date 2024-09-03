@@ -31,7 +31,6 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
     // Define auto acceptance due to expiration
     bytes32 public constant AUTO_ACCEPTANCE = keccak256("AUTO_ACCEPTANCE");
 
-
     /// @custom:storage-location erc7201:deelit.storage.DeelitProtocol
     struct DeelitProtocolStorage {
         // Mapping of payment hashes to payment states
@@ -46,7 +45,6 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
             $.slot := DeelitProtocolStorageLocation
         }
     }
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -88,8 +86,8 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         _verifySignature(tx_.payment.from_address, paymentHash, paymentSignature);
 
         // update payment state
-        $_payment.payer = refundAddress != address(0) ? refundAddress: msg.sender; // if no refund address, use the sender as payer
-        $_payment.vesting= block.timestamp + tx_.payment.vesting_period;
+        $_payment.payer = refundAddress != address(0) ? refundAddress : msg.sender; // if no refund address, use the sender as payer
+        $_payment.vesting = block.timestamp + tx_.payment.vesting_period;
 
         // process payment
         _doPay(tx_);
@@ -118,14 +116,10 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         // process claim payment
         _doClaim(tx_);
 
-        emit Claimed(paymentHash, AUTO_ACCEPTANCE, LibAcceptance.Acceptance(address(0),0));
+        emit Claimed(paymentHash, AUTO_ACCEPTANCE, LibAcceptance.Acceptance(address(0), 0));
     }
 
-    function claimAccepted(
-        LibTransaction.Transaction calldata tx_,
-        LibAcceptance.Acceptance calldata acceptance,
-        bytes calldata acceptanceSignature
-    ) external whenNotPaused {
+    function claimAccepted(LibTransaction.Transaction calldata tx_, LibAcceptance.Acceptance calldata acceptance, bytes calldata acceptanceSignature) external whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
         bytes32 offerHash = _hash(LibOffer.hash(tx_.offer));
@@ -155,11 +149,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Claimed(paymentHash, acceptanceHash, acceptance);
     }
 
-    function conflict(
-        LibTransaction.Transaction calldata tx_,
-        LibConflict.Conflict calldata conflict_,
-        bytes calldata conflictSignature
-    ) external whenNotPaused {
+    function conflict(LibTransaction.Transaction calldata tx_, LibConflict.Conflict calldata conflict_, bytes calldata conflictSignature) external whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
         bytes32 offerHash = _hash(LibOffer.hash(tx_.offer));
@@ -187,21 +177,28 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Conflicted(paymentHash, conflictHash, conflict_);
     }
 
-    function resolve(LibTransaction.Transaction calldata tx_, LibVerdict.Verdict calldata verdict, bytes calldata signature) external whenNotPaused {
+    function resolve(
+        LibTransaction.Transaction calldata tx_,
+        LibConflict.Conflict calldata conflict_,
+        LibVerdict.Verdict calldata verdict,
+        bytes calldata signature
+    ) external whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
         bytes32 verdictHash = _hash(LibVerdict.hash(verdict));
+        bytes32 conflictHash = _hash(LibConflict.hash(conflict_));
 
         // retrieve payment state
         PaymentState storage $_payment = _getPayment(paymentHash);
 
         (bool isIssuerJudge, ) = IAccessManager(authority()).hasRole(LibAccess.JUDGE_ROLE, verdict.from_address);
         require(isIssuerJudge, "DeelitProtocol: Invalid verdict issuer");
-        require(verdict.payment_hash == paymentHash, "DeelitProtocol: Invalid verdict payment hash");
         require($_payment.payer != address(0), "DeelitProtocol: Payment not paid");
         require($_payment.acceptance == bytes32(0), "DeelitProtocol: Payment already claimed");
         require($_payment.conflict != bytes32(0), "DeelitProtocol: Payment not in conflict");
         require($_payment.verdict == bytes32(0), "DeelitProtocol: Payment already resolved");
+        require($_payment.conflict == verdict.conflict_hash, "DeelitProtocol: Invalid conflict hash");
+        require(verdict.conflict_hash == conflictHash, "DeelitProtocol: Verdict conflict hash mismatch");
 
         // verify signature if not called by judge
         if (msg.sender != verdict.from_address) {
@@ -212,7 +209,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         $_payment.verdict = verdictHash;
 
         // process verdict
-        _doResolve(tx_, verdict, $_payment.payer);
+        _doResolve(tx_, conflict_, verdict, $_payment.payer);
 
         emit Verdicted(paymentHash, verdictHash, verdict);
     }
@@ -224,7 +221,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
     function getPaymentStatus(bytes32 paymentHash) external view override returns (bool paid, bytes32 claimHash, bytes32 conflictHash, bytes32 verdictHash) {
         PaymentState storage $_payment = _getPayment(paymentHash);
         return ($_payment.payer != address(0), $_payment.acceptance, $_payment.conflict, $_payment.verdict);
-    }   
+    }
 
     /// @dev validate a signature originator. Handle EIP1271 and EOA signatures using SignatureChecker library.
     /// @param signer the expected signer address
@@ -253,5 +250,4 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
     function unpause() external restricted {
         _unpause();
     }
-
 }

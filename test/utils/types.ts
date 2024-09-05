@@ -9,6 +9,7 @@ export const OfferTypedData = {
     { name: "shipment_hash", type: "bytes32" },
     { name: "shipment_price", type: "uint256" },
     { name: "expiration_time", type: "uint256" },
+    { name: "salt", type: "uint256" },
   ],
 };
 

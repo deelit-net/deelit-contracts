@@ -9,7 +9,7 @@ library LibOffer {
 
     bytes32 private constant OFFER_TYPEHASH =
         keccak256(
-            "Offer(address from_address,bytes32 product_hash,uint256 price,string currency_code,uint256 chain_id,address token_address,bytes32 shipment_hash,uint256 shipment_price,uint256 expiration_time)"
+            "Offer(address from_address,bytes32 product_hash,uint256 price,string currency_code,uint256 chain_id,address token_address,bytes32 shipment_hash,uint256 shipment_price,uint256 expiration_time,uint256 salt)"
         );
 
     struct Offer {
@@ -22,6 +22,7 @@ library LibOffer {
         bytes32 shipment_hash; // hash of the shipment details
         uint256 shipment_price; // price of the shipment in the currency
         uint256 expiration_time; // expiration time of the offer
+        uint256 salt; // salt for the offer
     }
 
     function hash(Offer memory offer_) internal pure returns (bytes32) {
@@ -37,7 +38,8 @@ library LibOffer {
                     offer_.token_address,
                     offer_.shipment_hash,
                     offer_.shipment_price,
-                    offer_.expiration_time
+                    offer_.expiration_time,
+                    offer_.salt
                 )
             );
     }

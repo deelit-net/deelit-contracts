@@ -10,7 +10,10 @@ import {
   LibOffer,
   LibPayment,
 } from "../../typechain-types/contracts/lottery/Lottery";
-import { deployERC20MockFixture, deployLotteryFixture } from "../utils/fixtures";
+import {
+  deployERC20MockFixture,
+  deployLotteryFixture,
+} from "../utils/fixtures";
 import {
   A_DAY,
   calculateFee,
@@ -416,6 +419,7 @@ describe("Lottery", function () {
         shipment_hash: ZeroBytes32, // actually not used
         shipment_price: 0, // shipment price must be 0
         expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+        salt: 0,
       };
 
       const payment: LibPayment.PaymentStruct = {
@@ -472,7 +476,7 @@ describe("Lottery", function () {
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
 
-      const {erc20, erc20Address} = await deployERC20MockFixture()
+      const { erc20, erc20Address } = await deployERC20MockFixture();
 
       // Create a lottery first
       const lotteryDetails = {
@@ -498,26 +502,46 @@ describe("Lottery", function () {
       await lottery.createLottery(lotteryDetails);
 
       // Participate in the lottery
-      await erc20.connect(owner).transfer(participant1.address, ticketTotalPrice)
-      await erc20.connect(participant1).approve(lotteryAddress, ticketTotalPrice)
-      await erc20.connect(participant1).approve(lotteryAddress, ticketTotalPrice)
+      await erc20
+        .connect(owner)
+        .transfer(participant1.address, ticketTotalPrice);
+      await erc20
+        .connect(participant1)
+        .approve(lotteryAddress, ticketTotalPrice);
+      await erc20
+        .connect(participant1)
+        .approve(lotteryAddress, ticketTotalPrice);
       await lottery.connect(participant1).participate(lotteryDetails);
 
-      await erc20.connect(owner).transfer(participant2.address, ticketTotalPrice)
-      await erc20.connect(participant2).approve(lotteryAddress, ticketTotalPrice)
-      await erc20.connect(participant2).approve(lotteryAddress, ticketTotalPrice)
+      await erc20
+        .connect(owner)
+        .transfer(participant2.address, ticketTotalPrice);
+      await erc20
+        .connect(participant2)
+        .approve(lotteryAddress, ticketTotalPrice);
+      await erc20
+        .connect(participant2)
+        .approve(lotteryAddress, ticketTotalPrice);
       await lottery.connect(participant2).participate(lotteryDetails);
 
-      await erc20.connect(owner).transfer(participant3.address, ticketTotalPrice)
-      await erc20.connect(participant3).approve(lotteryAddress, ticketTotalPrice)
-      await erc20.connect(participant3).approve(lotteryAddress, ticketTotalPrice)
+      await erc20
+        .connect(owner)
+        .transfer(participant3.address, ticketTotalPrice);
+      await erc20
+        .connect(participant3)
+        .approve(lotteryAddress, ticketTotalPrice);
+      await erc20
+        .connect(participant3)
+        .approve(lotteryAddress, ticketTotalPrice);
       await lottery.connect(participant3).participate(lotteryDetails);
 
       // Draw the lottery
       await lottery.connect(owner).draw(lotteryDetails);
 
       // Retrieve the winner address
-      const [, , winner] = await lottery.getLotteryStatus(await LotteryUtils.hash(lotteryDetails, lotteryAddress));
+      const [, , winner] = await lottery.getLotteryStatus(
+        await LotteryUtils.hash(lotteryDetails, lotteryAddress),
+      );
 
       // Compute the protocol offer price
       const offerPrice =
@@ -534,6 +558,7 @@ describe("Lottery", function () {
         shipment_hash: ZeroBytes32, // actually not used
         shipment_price: 0, // shipment price must be 0
         expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+        salt: 0,
       };
 
       const payment: LibPayment.PaymentStruct = {
@@ -559,8 +584,6 @@ describe("Lottery", function () {
             paymentSignature,
           ),
       ).to.emit(lottery, "Paid");
-
-
     });
   });
 
@@ -849,7 +872,7 @@ describe("Lottery", function () {
 
       // check balance
       expect(participant1BalanceAfter).to.be.eq(
-        participant1BalanceBefore + (totalParticipation * 3n),
+        participant1BalanceBefore + totalParticipation * 3n,
       );
     });
 

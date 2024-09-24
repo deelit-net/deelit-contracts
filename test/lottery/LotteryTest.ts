@@ -619,12 +619,12 @@ describe("Lottery", function () {
       ).to.deep.equal([LOTTERY_CANCELLED_STATUS, 0, ZeroAddress]);
     });
 
-    it("Should not allow cancellation of a drawn lottery", async function () {
+    it("Should not allow cancellation of a paid lottery", async function () {
       const {
         lottery,
         owner,
         participant1,
-        participant2,
+        deelitAddress,
         lotteryFees,
         protocolFees,
       } = await loadFixture(deployLotteryFixture);
@@ -660,16 +660,55 @@ describe("Lottery", function () {
         .connect(participant1)
         .participate(lotteryDetails, { value: ticketTotalPrice });
       await lottery
-        .connect(participant2)
+        .connect(participant1)
         .participate(lotteryDetails, { value: ticketTotalPrice });
 
       // Draw the lottery
       await lottery.connect(owner).draw(lotteryDetails);
 
+      // Pay the lottery
+      const offerPrice =
+        lotteryDetails.ticket_price * BigInt(lotteryDetails.nb_tickets);
+
+      const offer: LibOffer.OfferStruct = {
+        from_address: participant1.address, // offer originator is the lottery winner
+        product_hash: lotteryDetails.product_hash, // product hash must match the lottery product hash
+        price: offerPrice, // price must match the total lottery prize minus the protocol fee
+        currency_code: "ETH", // actually not used
+        chain_id: 1, // chain id must match the lottery chain id
+        token_address: lotteryDetails.token_address, // token address must match the lottery token address
+        shipment_hash: ZeroBytes32, // actually not used
+        shipment_price: 0, // shipment price must be 0
+        expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+        salt: 0,
+      };
+
+      const payment: LibPayment.PaymentStruct = {
+        from_address: owner.address, // payment originator (might be the lottery owner)
+        destination_address: "0x0000000000000000000000000000000000000002", // payment destination (might be eq to from_address)
+        offer_hash: OfferUtils.hash(offer, deelitAddress), // offer hash must match the tx offer hash
+        expiration_time: new Date().getTime() + A_DAY, // expiration time must be greater than the current time
+        vesting_period: 30 * A_DAY, // 30 days
+      };
+
+      const paymentSignature = await owner.signTypedData(
+        domain(deelitAddress),
+        PaymentUtils.typedData,
+        payment,
+      );
+
+      await lottery
+        .connect(owner)
+        .pay(
+          lotteryDetails,
+          { offer: offer, payment: payment },
+          paymentSignature,
+        );
+
       // Try to cancel
       await expect(
         lottery.connect(owner).cancel(lotteryDetails),
-      ).to.be.revertedWith("Lottery: already drawn");
+      ).to.be.revertedWith("Lottery: already paid");
     });
 
     it("Should not allow cancelation if expiration time not reached", async function () {

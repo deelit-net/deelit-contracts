@@ -51,7 +51,6 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         IDeelitProtocol _protocol;
         bytes32 _protocolDomainSeparator; // cached EIP712 domain separator
         mapping(bytes32 => LotteryState) _lotteries; // lottery state mapping
-
         uint256 _protocolMinVestingPeriod; // minimal vesting period for protocol payments
     }
 
@@ -74,7 +73,13 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         _disableInitializers();
     }
 
-    function initialize(IAccessManager manager_, IDeelitProtocol protocol_, IRandomProducer randomProducer_, LibFee.Fee calldata fees, uint256 protocolMinVestingPeriod_) public initializer {
+    function initialize(
+        IAccessManager manager_,
+        IDeelitProtocol protocol_,
+        IRandomProducer randomProducer_,
+        LibFee.Fee calldata fees,
+        uint256 protocolMinVestingPeriod_
+    ) public initializer {
         __AccessManaged_init(address(manager_));
         __RandomConsumer_init(randomProducer_);
         __EIP712_init("deelit.net", "1");
@@ -216,7 +221,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     function cancel(LibLottery.Lottery calldata lottery) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_exist(lotteryHash), "Lottery: lottery not found");
-        require(!_isDrawn(lotteryHash), "Lottery: already drawn");
+        require(!_isPaid(lotteryHash), "Lottery: already paid");
         require(!_isCanceled(lotteryHash), "Lottery: already canceled");
 
         // if not expire and not the lottery creator, check if admin
@@ -255,11 +260,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     /// !WARNING! Note that we do not check the offer price versus the lottery price here.
     /// It is not an issue for native payment because even if the protocol attempt to refund the excess payments, the transaction will failed cause the lottery contract is not a payable.
     /// For ERC20 payment, we may implement a check so we prevent locking tokens on this contract.
-    function pay(
-        LibLottery.Lottery calldata lottery,
-        LibTransaction.Transaction calldata transaction,
-        bytes calldata paymentSignature
-    ) external override whenNotPaused {
+    function pay(LibLottery.Lottery calldata lottery, LibTransaction.Transaction calldata transaction, bytes calldata paymentSignature) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         address winner = _getWinnerAddress(lotteryHash); //  _getWinnerAddress(lotteryHash) also check if lottery is drawn.
 
@@ -324,7 +325,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
 
         (bool fullfilled, uint256 randomWord) = _getRequestStatus($_lottery.randomRequestId);
-        
+
         if (fullfilled) {
             return (randomWord % $_lottery.ticketCount) + 1; // random btw 1 and ticketCount
         } else {
@@ -341,7 +342,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.tickets[ticketNumber];
-    }  
+    }
 
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool) {
         return _isFilled(_hash(LibLottery.hash(lottery)), lottery);

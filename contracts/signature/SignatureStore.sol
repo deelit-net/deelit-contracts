@@ -7,11 +7,13 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 /// @title Signature Store contract
 /// @author d0x4545lit
-/// @notice Contract to store signatures and verify them through EIP1271. 
+/// @notice Contract to store signatures and verify them through EIP1271.
+/// ************************
+/// - WIP - WORK IN PROGRESS
+/// ************************
 /// @custom:security-contact dev@deelit.net
 abstract contract SignatureStore is IERC1271, Initializable {
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
-
 
     /// @custom:storage-location erc7201:deelit.storage.FeeDispatcher
     struct SignatureStoreStorage {
@@ -27,6 +29,7 @@ abstract contract SignatureStore is IERC1271, Initializable {
             $.slot := SignatureStoreStorageLocation
         }
     }
+
     /**
      * @dev Initializes the contract connected to an initial authority.
      */
@@ -54,7 +57,7 @@ abstract contract SignatureStore is IERC1271, Initializable {
     function _revokeSignature(bytes32 hash_) internal {
         BitMaps.unset(_getSignatures(), uint256(hash_));
     }
-    
+
     /// Check if the signature is valid
     /// @param hash_ the hash to check
     /// @param signature the signature to check

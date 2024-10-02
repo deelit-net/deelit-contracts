@@ -26,7 +26,6 @@ const PROTOCOL_MINIMAL_VESTING_PERIOD = 2592000n; // 30 days
 export async function deployAccessManagerFixture() {
   const [owner] = await hre.ethers.getSigners();
 
-
   const factory = await hre.ethers.getContractFactory("DeelitAccessManager");
   const accessManager = (await upgrades.deployProxy(factory, [
     owner.address,
@@ -58,7 +57,9 @@ export async function deployFeeRecipientFixture() {
 export async function deployERC20MockFixture() {
   const [owner] = await hre.ethers.getSigners();
 
-  const erc20 = await hre.ethers.deployContract("ERC20Mock") as BaseContract as ERC20Mock;
+  const erc20 = (await hre.ethers.deployContract(
+    "ERC20Mock",
+  )) as BaseContract as ERC20Mock;
   const erc20Address = await erc20.getAddress();
 
   return { erc20, erc20Address, owner };
@@ -186,7 +187,10 @@ export async function deployDeelitProtocolWithInitialTokenPaymentFixture() {
 
   const amountWithFees =
     BigInt(offer.price) +
-    calculateFee(BigInt(offer.price), BigInt(deployment.protocolFees.amount_bp));
+    calculateFee(
+      BigInt(offer.price),
+      BigInt(deployment.protocolFees.amount_bp),
+    );
   erc20.transfer(deployment.alice.address, amountWithFees);
   erc20.approve(deployment.deelitAddress, amountWithFees);
 
@@ -194,7 +198,9 @@ export async function deployDeelitProtocolWithInitialTokenPaymentFixture() {
     .connect(deployment.alice)
     .approve(deployment.deelitAddress, amountWithFees);
 
-  await deployment.deelit.connect(deployment.alice).pay(tx, signature, ZeroAddress);
+  await deployment.deelit
+    .connect(deployment.alice)
+    .pay(tx, signature, ZeroAddress);
 
   return {
     ...deployment,
@@ -208,12 +214,15 @@ export async function deployDeelitProtocolWithInitialTokenPaymentFixture() {
 }
 
 export async function deployDeelitTokenFixture() {
-  const [owner] = await hre.ethers.getSigners();
+  const accessManagerDeployment = await deployAccessManagerFixture();
 
-  const deelitToken = await hre.ethers.deployContract("DeeToken");
+  const deelitTokenFactory = await hre.ethers.getContractFactory("DeeToken");
+  const deelitToken = (await upgrades.deployProxy(deelitTokenFactory, [
+    accessManagerDeployment.accessManagerAddress,
+  ])) as BaseContract as Lottery;
   const deelitTokenAddress = await deelitToken.getAddress();
 
-  return { deelitToken, deelitTokenAddress, owner };
+  return { deelitToken, deelitTokenAddress, ...accessManagerDeployment };
 }
 
 export async function deployRandomProducerMockFixture() {
@@ -228,7 +237,7 @@ export async function deployRandomProducerMockFixture() {
   return {
     randomProducerMock,
     randomProducerMockAddress,
-    owner
+    owner,
   };
 }
 
@@ -250,7 +259,7 @@ export async function deployLotteryFixture() {
     deelitProtocolFixture.deelitAddress,
     randomProducerMockFixture.randomProducerMockAddress,
     lotteryFees,
-    PROTOCOL_MINIMAL_VESTING_PERIOD
+    PROTOCOL_MINIMAL_VESTING_PERIOD,
   ])) as BaseContract as Lottery;
 
   const lotteryAddress = await lottery.getAddress();
@@ -266,6 +275,6 @@ export async function deployLotteryFixture() {
     participant3,
     participant4,
     lotteryFees,
-    protocolMinVestingPeriod: PROTOCOL_MINIMAL_VESTING_PERIOD
+    protocolMinVestingPeriod: PROTOCOL_MINIMAL_VESTING_PERIOD,
   };
 }

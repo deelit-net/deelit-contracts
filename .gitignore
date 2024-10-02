@@ -213,3 +213,6 @@ ignition/deployments/chain-31337
 .vuepress/.cache
 # VuePress default build output directory
 .vuepress/dist
+
+
+venv

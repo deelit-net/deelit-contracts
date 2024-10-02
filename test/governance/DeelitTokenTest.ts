@@ -10,8 +10,8 @@ describe("DeelitToken", function () {
         deployDeelitTokenFixture,
       );
 
-      const expectSupply = parseUnits("1000000", 18)
-      const currentSupply = await deelitToken.totalSupply()
+      const expectSupply = parseUnits("1000000000", 18);
+      const currentSupply = await deelitToken.totalSupply();
 
       expect(currentSupply).to.be.eq(expectSupply);
       expect(await deelitToken.balanceOf(owner.address)).to.be.eq(expectSupply);

@@ -40,10 +40,6 @@ contract DeeToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
         _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
 
-    function mint(address to, uint256 amount) public restricted {
-        _mint(to, amount);
-    }
-
     function clock() public view override returns (uint48) {
         return uint48(block.timestamp);
     }

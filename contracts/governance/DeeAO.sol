@@ -15,9 +15,6 @@ import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 /// @title DeeAO governance contract
 /// @author d0x4545lit
 /// @notice DeeAO is a governance contract for the Deelit protocol.
-/// ************************
-/// - WIP - WORK IN PROGRESS
-/// ************************
 /// @custom:security-contact dev@deelit.net
 contract DeeAO is
     Initializable,

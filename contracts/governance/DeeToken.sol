@@ -28,6 +28,10 @@ contract DeeToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
         _disableInitializers();
     }
 
+    /**
+     * @dev Contract initializer
+     * @param initialAuthority The initial authority (AccessManager)
+     */
     function initialize(address initialAuthority) public initializer {
         __ERC20_init(NAME, SYMBOL);
         __ERC20Burnable_init();
@@ -40,6 +44,9 @@ contract DeeToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
         _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
 
+    /**
+     * @dev Overrides IERC6372 functions to make the token & governor timestamp-based
+     */
     function clock() public view override returns (uint48) {
         return uint48(block.timestamp);
     }
@@ -49,13 +56,23 @@ contract DeeToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
         return "mode=timestamp";
     }
 
+    /**
+     * @inheritdoc UUPSUpgradeable
+     */
     function _authorizeUpgrade(address newImplementation) internal override restricted {}
 
     // The following functions are overrides required by Solidity.
+
+    /**
+     * @inheritdoc ERC20Upgradeable
+     */
     function _update(address from, address to, uint256 value) internal override(ERC20Upgradeable, ERC20VotesUpgradeable) {
         super._update(from, to, value);
     }
 
+    /**
+     * @inheritdoc ERC20PermitUpgradeable
+     */
     function nonces(address owner) public view override(ERC20PermitUpgradeable, NoncesUpgradeable) returns (uint256) {
         return super.nonces(owner);
     }

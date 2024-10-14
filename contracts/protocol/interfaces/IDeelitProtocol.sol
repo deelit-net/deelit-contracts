@@ -47,7 +47,7 @@ interface IDeelitProtocol is IERC5267 {
     /// @notice Initiate a payment.
     /// @param tx_ the payment and offer details
     /// @param paymentSignature  the payment signature
-    /// @param refundAddress optional refund address to process the refund
+    /// @param refundAddress optional refund address to process the refund. If not provided, the sender address is used.
     function pay(LibTransaction.Transaction calldata tx_, bytes calldata paymentSignature, address refundAddress) external payable;
 
     /// @notice Claim a payment with an expired vesting period.

@@ -17,6 +17,11 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 contract RandomProducerChainlinkVRFv25 is IRandomProducer, VRFConsumerBaseV2Plus, AccessManaged {
     event RequestSent(uint256 requestId);
     event RequestFulfilled(uint256 requestId, uint256 randomWords);
+    event CallbackGasLimitChanged(uint32 callbackGasLimit);
+    event RequestConfirmationsChanged(uint16 requestConfirmations);
+    event NativePaymentChanged(bool enableNativePayment);
+    event SubscriptionIdChanged(uint256 subscriptionId);
+    event GasLanekeyHashChanged(bytes32 gasLanekeyHash);
 
     uint32 constant NUM_WORDS = 1;
 
@@ -67,26 +72,44 @@ contract RandomProducerChainlinkVRFv25 is IRandomProducer, VRFConsumerBaseV2Plus
         _requestConfirmations = requestConfirmations_;
     }
 
+    /// @dev Set the callback gas limit.
+    /// @param callbackGasLimit The callback gas limit.
     function setCallbackGasLimit(uint32 callbackGasLimit) external restricted {
+        require(callbackGasLimit > 0, "RandomProducerChainlinkVRFv25: invalid callback gas limit");
         _callbackGasLimit = callbackGasLimit;
+        emit CallbackGasLimitChanged(callbackGasLimit);
     }
 
+    /// @dev Set the request confirmations.
+    /// @param requestConfirmations The request confirmations.
     function setRequestConfirmations(uint16 requestConfirmations) external restricted {
         _requestConfirmations = requestConfirmations;
+        emit RequestConfirmationsChanged(requestConfirmations);
     }
 
+    /// @dev Set whether to use native payment or not.
+    /// @param enableNativePayment Whether to use native payment or not.
     function setNativePayment(bool enableNativePayment) external restricted {
         useNativePayment = enableNativePayment;
+        emit NativePaymentChanged(enableNativePayment);
     }
 
+    /// @dev Set the subscription id.
+    /// @param subscriptionId The subscription id.
     function setSubscriptionId(uint256 subscriptionId) external restricted {
         _subscriptionId = subscriptionId;
+        emit SubscriptionIdChanged(subscriptionId);
     }
 
+    /// @dev Set the gas lane key hash.
+    /// @param gasLanekeyHash The gas lane key hash.
     function setGasLanekeyHash(bytes32 gasLanekeyHash) external restricted {
         _gasLanekeyHash = gasLanekeyHash;
+        emit GasLanekeyHashChanged(gasLanekeyHash);
     }
 
+    /// @dev Request a random word.
+    /// @return requestId The request id.
     function requestRandomWord() external restricted returns (uint256 requestId) {
         // Will revert if subscription is not set and funded.
         requestId = s_vrfCoordinator.requestRandomWords(
@@ -106,6 +129,8 @@ contract RandomProducerChainlinkVRFv25 is IRandomProducer, VRFConsumerBaseV2Plus
         return requestId;
     }
 
+    /// @dev Callback function used by VRF coordinator.
+    /// @param _requestId The request id.
     function fulfillRandomWords(uint256 _requestId, uint256[] calldata _randomWords) internal override {
         require(_requests[_requestId].exists, "RandomProducerChainlinkVRFv25: request not found");
         _requests[_requestId].fulfilled = true;
@@ -113,10 +138,11 @@ contract RandomProducerChainlinkVRFv25 is IRandomProducer, VRFConsumerBaseV2Plus
         emit RequestFulfilled(_requestId, _randomWords[0]);
     }
 
+    /// @dev Get a request status.
+    /// @param _requestId The request id.
     function getRequestStatus(uint256 _requestId) external view returns (bool fulfilled, uint256 randomWord) {
         require(_requests[_requestId].exists, "RandomProducerChainlinkVRFv25: request not found");
         RequestStatus memory request = _requests[_requestId];
         return (request.fulfilled, request.randomWord);
     }
-
 }

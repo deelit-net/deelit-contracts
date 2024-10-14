@@ -22,6 +22,8 @@ abstract contract TransfertManager is Initializable, FeeCollector, ContextUpgrad
     using Address for address payable;
     using LibBytes for bytes;
 
+    /// @dev Initialize the contract
+    /// @param fees the fees details
     function __TransfertManager_init(LibFee.Fee calldata fees) internal onlyInitializing {
         __FeeCollector_init(fees);
         __TransfertManager_init_unchained();

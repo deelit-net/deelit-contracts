@@ -19,6 +19,12 @@ import {LibAccess} from "../libraries/LibAccess.sol";
 contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgradeable, EIP712Upgradeable, PausableUpgradeable, UUPSUpgradeable {
     using SignatureChecker for address;
 
+    // Define the maximum protocol fees in basis points
+    uint48 public constant MAX_FEES_BP = 25_00; // 25%
+
+    // Define auto acceptance due to expiration
+    bytes32 public constant AUTO_ACCEPTANCE = keccak256("AUTO_ACCEPTANCE");
+
     /// @notice Payment state.
     struct PaymentState {
         address payer; // the payer address to refund. Also used to identify initiated payment
@@ -27,9 +33,6 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         bytes32 verdict; // verdict hash
         uint256 vesting; // vesting time for payment claim => payment time + vesting_period
     }
-
-    // Define auto acceptance due to expiration
-    bytes32 public constant AUTO_ACCEPTANCE = keccak256("AUTO_ACCEPTANCE");
 
     /// @custom:storage-location erc7201:deelit.storage.DeelitProtocol
     struct DeelitProtocolStorage {
@@ -51,7 +54,10 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         _disableInitializers();
     }
 
+    /// @dev Initialize the DeelitProtocol contract.
     function initialize(IAccessManager manager_, LibFee.Fee calldata fees_) public initializer {
+        require(fees_.amount_bp <= MAX_FEES_BP, "DeelitProtocol: Fee amount too high");
+
         __AccessManaged_init(address(manager_));
         __Pausable_init();
         __EIP712_init("deelit.net", "1");
@@ -62,15 +68,18 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
     /// @dev Set the fees for the protocol.
     /// @param fees_ the fees to set. see LibFee.Fee struct.
     function setFees(LibFee.Fee calldata fees_) external restricted {
-        // checks are done in the TransfertManager
+        require(fees_.amount_bp <= MAX_FEES_BP, "DeelitProtocol: Fee amount too high");
         _setFees(fees_);
     }
 
+    /// @dev Get the payment state for a given payment hash.
+    /// @param paymentHash the payment hash to get the state for.
     function _getPayment(bytes32 paymentHash) private view returns (PaymentState storage) {
         DeelitProtocolStorage storage $ = _getDeelitProtocolStorage();
         return $._payments[paymentHash];
     }
 
+    /// @inheritdoc IDeelitProtocol
     function pay(LibTransaction.Transaction calldata tx_, bytes calldata paymentSignature, address refundAddress) external payable whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
@@ -95,6 +104,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Payed(paymentHash, tx_);
     }
 
+    /// @inheritdoc IDeelitProtocol
     function claim(LibTransaction.Transaction calldata tx_) external whenNotPaused {
         // compute payment hash
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
@@ -119,6 +129,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Claimed(paymentHash, AUTO_ACCEPTANCE, LibAcceptance.Acceptance(address(0), 0));
     }
 
+    /// @inheritdoc IDeelitProtocol
     function claimAccepted(LibTransaction.Transaction calldata tx_, LibAcceptance.Acceptance calldata acceptance, bytes calldata acceptanceSignature) external whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
@@ -149,6 +160,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Claimed(paymentHash, acceptanceHash, acceptance);
     }
 
+    /// @inheritdoc IDeelitProtocol
     function conflict(LibTransaction.Transaction calldata tx_, LibConflict.Conflict calldata conflict_, bytes calldata conflictSignature) external whenNotPaused {
         // compute hashes
         bytes32 paymentHash = _hash(LibPayment.hash(tx_.payment));
@@ -177,6 +189,7 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Conflicted(paymentHash, conflictHash, conflict_);
     }
 
+    /// @inheritdoc IDeelitProtocol
     function resolve(
         LibTransaction.Transaction calldata tx_,
         LibConflict.Conflict calldata conflict_,
@@ -214,10 +227,13 @@ contract DeelitProtocol is IDeelitProtocol, TransfertManager, AccessManagedUpgra
         emit Verdicted(paymentHash, verdictHash, verdict);
     }
 
+    /// @dev Get the payment state for a given payment hash.
+    /// @param paymentHash the payment hash to get the state for.
     function getPaymentState(bytes32 paymentHash) external view returns (PaymentState memory) {
         return _getPayment(paymentHash);
     }
 
+    /// @inheritdoc IDeelitProtocol
     function getPaymentStatus(bytes32 paymentHash) external view override returns (bool paid, bytes32 claimHash, bytes32 conflictHash, bytes32 verdictHash) {
         PaymentState storage $_payment = _getPayment(paymentHash);
         return ($_payment.payer != address(0), $_payment.acceptance, $_payment.conflict, $_payment.verdict);

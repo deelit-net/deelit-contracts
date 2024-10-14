@@ -31,6 +31,9 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     using Address for address payable;
     using Math for uint256;
 
+    // Define the maximum protocol fees in basis points
+    uint48 public constant MAX_FEES_BP = 25_00; // 25%
+
     // lottery state
     struct LotteryState {
         // lottery infos
@@ -57,12 +60,14 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
     // keccak256(abi.encode(uint256(keccak256("deelit.storage.Lottery")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant LotteryStorageLocation = 0xd1cf091c595fc493f0b5779990274e2d871a6e5a155133013bc5fd60bcd09200;
 
+    /// @dev Get storage struct of the contract.
     function _getLotteryStorage() private pure returns (LotteryStorage storage $) {
         assembly {
             $.slot := LotteryStorageLocation
         }
     }
 
+    /// @dev Modifier to check if the caller is the winner of the lottery.
     modifier onlyWinner(bytes32 lotteryHash) {
         require(msg.sender == _getWinnerAddress(lotteryHash), "Lottery: only winner can call");
         _;
@@ -73,37 +78,50 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         _disableInitializers();
     }
 
+    /// @dev Initialize the contract.
+    /// @param manager_  The access manager contract
+    /// @param protocol_  The DeelitProtocol contract
+    /// @param randomProducer_ The RandomProducer contract
+    /// @param fees_ The initial fees
+    /// @param protocolMinVestingPeriod_  The minimal vesting period for protocol payments
     function initialize(
         IAccessManager manager_,
         IDeelitProtocol protocol_,
         IRandomProducer randomProducer_,
-        LibFee.Fee calldata fees,
+        LibFee.Fee calldata fees_,
         uint256 protocolMinVestingPeriod_
     ) public initializer {
+        require(fees_.amount_bp <= MAX_FEES_BP, "DeelitProtocol: Fee amount too high");
+
         __AccessManaged_init(address(manager_));
         __RandomConsumer_init(randomProducer_);
         __EIP712_init("deelit.net", "1");
         __Pausable_init();
-        __FeeCollector_init(fees);
+        __FeeCollector_init(fees_);
         __UUPSUpgradeable_init();
 
         _setProtocol(protocol_);
         _setProtocolMinVestingPeriod(protocolMinVestingPeriod_);
     }
 
+    /// @dev Get the protocol contract.
     function getProtocol() external view returns (IDeelitProtocol) {
         return _getProtocol();
     }
 
+    /// @dev Internal function to get the protocol contract.
     function _getProtocol() private view returns (IDeelitProtocol) {
         LotteryStorage storage $ = _getLotteryStorage();
         return $._protocol;
     }
 
+    /// @dev Set the protocol contract.
     function setProtocol(IDeelitProtocol protocol_) external restricted {
         _setProtocol(protocol_);
     }
 
+    /// @dev Internal function to set the protocol contract.
+    /// @param protocol_ the DeelitProtocol contract
     function _setProtocol(IDeelitProtocol protocol_) internal {
         require(address(protocol_) != address(0), "Lottery: protocol address is zero");
         (, string memory name, string memory version, uint256 chainId, address verifyingContract, , ) = protocol_.eip712Domain();
@@ -113,10 +131,21 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $._protocolDomainSeparator = LibEIP712.buildDomainSeparator(LibEIP712.EIP712Domain(name, version, chainId, verifyingContract));
     }
 
+    /// @dev Set the fees for the lottery. The fees are in basis points and should be less than 25%.
+    /// @param fees The fees details
+    function setFees(LibFee.Fee calldata fees) external restricted {
+        require(fees.amount_bp <= MAX_FEES_BP, "Lottery: fees amount is too high");
+        _setFees(fees);
+    }
+
+    /// @dev Set the minimal vesting period for protocol payments.
+    /// The minimal vesting period is the minimal period for a protocol payment to be locked.
     function setProtocolMinVestingPeriod(uint256 protocolMinVestingPeriod_) external restricted {
         _setProtocolMinVestingPeriod(protocolMinVestingPeriod_);
     }
 
+    /// @dev Internal function to set the minimal vesting period for protocol payments.
+    /// @param protocolMinVestingPeriod_ the minimal vesting period for protocol payments
     function _setProtocolMinVestingPeriod(uint256 protocolMinVestingPeriod_) internal {
         require(protocolMinVestingPeriod_ > 0, "Lottery: protocol min vesting period is zero");
 
@@ -124,15 +153,18 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         $._protocolMinVestingPeriod = protocolMinVestingPeriod_;
     }
 
+    /// @dev Get the minimal vesting period for protocol payments.
     function getProtocolMinVestingPeriod() external view returns (uint256) {
         LotteryStorage storage $ = _getLotteryStorage();
         return $._protocolMinVestingPeriod;
     }
 
+    /// @dev Set the access manager contract.
     function setRandomProducer(IRandomProducer randomProducer) external restricted {
         _setRandomProducer(randomProducer);
     }
 
+    /// @inheritdoc ILottery
     function createLottery(LibLottery.Lottery calldata lottery) external whenNotPaused returns (bytes32 lotteryHash) {
         lotteryHash = _hash(LibLottery.hash(lottery));
 
@@ -151,6 +183,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Created(lotteryHash, lottery);
     }
 
+    /// @inheritdoc ILottery
     function participate(LibLottery.Lottery calldata lottery) external payable override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_exist(lotteryHash), "Lottery: lottery not found");
@@ -173,6 +206,10 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Participated(lotteryHash, $_lottery.ticketCount, msg.sender);
     }
 
+    /// @dev Process native payment for participation.
+    /// - Check if the value sent is enough to participate in the lottery.
+    /// - Refund excess value.
+    /// @param lottery The lottery details
     function _doParticipateNative(LibLottery.Lottery calldata lottery) private {
         uint256 totalWithFees = LibLottery.calculateParticipation(lottery);
         require(msg.value >= totalWithFees, "Lottery: insufficient value");
@@ -184,6 +221,12 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
     }
 
+    /// @dev Process ERC20 payment for participation.
+    /// - Check if the allowance is enough to participate in the lottery.
+    /// - Transfer the tokens.
+    ///@param token The ERC20 token
+    ///@param lottery The lottery details
+
     function _doParticipateErc20(IERC20 token, LibLottery.Lottery calldata lottery) private {
         uint256 totalWithFees = LibLottery.calculateParticipation(lottery);
         require(token.allowance(msg.sender, address(this)) >= totalWithFees, "Lottery: insufficient allowance");
@@ -192,6 +235,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         token.safeTransferFrom(msg.sender, address(this), totalWithFees);
     }
 
+    /// @inheritdoc ILottery
     function redeem(LibLottery.Lottery calldata lottery, uint256 ticketNumber) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_isCanceled(lotteryHash), "Lottery: not canceled");
@@ -218,6 +262,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Redeemed(lotteryHash, ticketNumber, participant);
     }
 
+    /// @inheritdoc ILottery
     function cancel(LibLottery.Lottery calldata lottery) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         require(_exist(lotteryHash), "Lottery: lottery not found");
@@ -238,6 +283,7 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Canceled(lotteryHash, msg.sender);
     }
 
+    /// @inheritdoc ILottery
     function draw(LibLottery.Lottery calldata lottery) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
 
@@ -256,10 +302,10 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Drawn(lotteryHash, requestId);
     }
 
-    /// @dev Important! The protocol payment requester is responsible to align transaction inputs with the lottery datas.
+    ///  @dev Important! The protocol payment requester is responsible to align transaction inputs with the lottery datas.
     /// !WARNING! Note that we do not check the offer price versus the lottery price here.
-    /// It is not an issue for native payment because even if the protocol attempt to refund the excess payments, the transaction will failed cause the lottery contract is not a payable.
-    /// For ERC20 payment, we may implement a check so we prevent locking tokens on this contract.
+    /// - It is not an issue for native payment because even if the protocol attempt to refund the excess payments, the transaction will failed cause the lottery contract is not a payable.
+    /// - For ERC20 payment, we may implement a check so we prevent locking tokens on this contract.
     function pay(LibLottery.Lottery calldata lottery, LibTransaction.Transaction calldata transaction, bytes calldata paymentSignature) external override whenNotPaused {
         bytes32 lotteryHash = _hash(LibLottery.hash(lottery));
         address winner = _getWinnerAddress(lotteryHash); //  _getWinnerAddress(lotteryHash) also check if lottery is drawn.
@@ -299,25 +345,32 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         emit Paid(lotteryHash, transaction);
     }
 
+    /// @dev Internal function to get the lottery state.
     function _getLotteryState(bytes32 lotteryHash) internal view returns (LotteryState storage) {
         LotteryStorage storage $ = _getLotteryStorage();
         return $._lotteries[lotteryHash];
     }
 
+    /// @inheritdoc ILottery
     function getWinnerAddress(bytes32 lotteryHash) external view override returns (address) {
         return _getWinnerAddress(lotteryHash);
     }
 
+    /// @dev Get the winner address of a lottery.
+    /// @param lotteryHash  The hash of the lottery
     function _getWinnerAddress(bytes32 lotteryHash) internal view returns (address) {
         uint256 winnerTicket = _getWinnerTicket(lotteryHash);
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.tickets[winnerTicket];
     }
 
+    /// @inheritdoc ILottery
     function getWinnerTicket(bytes32 lotteryHash) external view override returns (uint256) {
         return _getWinnerTicket(lotteryHash);
     }
 
+    /// @dev Internal function to get the winner ticket of a lottery.
+    /// @param lotteryHash The hash of the lottery
     function _getWinnerTicket(bytes32 lotteryHash) internal view returns (uint256) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         if ($_lottery.status < LotteryStatus.Drawn) {
@@ -333,26 +386,34 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         }
     }
 
+    /// @inheritdoc ILottery
     function getLotteryStatus(bytes32 lotteryHash) external view override returns (LotteryStatus, uint256, address) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return ($_lottery.status, $_lottery.ticketCount, _isDrawn(lotteryHash) ? _getWinnerAddress(lotteryHash) : address(0));
     }
 
+    /// @inheritdoc ILottery
     function getTicketOwner(bytes32 lotteryHash, uint256 ticketNumber) external view returns (address) {
         require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.tickets[ticketNumber];
     }
 
+    /// @inheritdoc ILottery
     function isFilled(LibLottery.Lottery calldata lottery) external view returns (bool) {
         return _isFilled(_hash(LibLottery.hash(lottery)), lottery);
     }
 
+    /// @dev Internal function to check if a lottery is filled.
+    /// @param lotteryHash  The hash of the lottery
+    /// @param lottery  The lottery details
     function _isFilled(bytes32 lotteryHash, LibLottery.Lottery calldata lottery) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.ticketCount == lottery.nb_tickets;
     }
 
+    /// @dev Internal function to check if a lottery is drawn.
+    /// @param lotteryHash  The hash of the lottery
     function _isDrawn(bytes32 lotteryHash) internal view returns (bool) {
         require(_exist(lotteryHash), "Lottery: lottery not found");
 
@@ -360,36 +421,50 @@ contract Lottery is ILottery, RandomConsumer, FeeCollector, AccessManagedUpgrade
         return $_lottery.randomRequestId > 0;
     }
 
+    /// @dev Internal function to check if a lottery is paid.
+    /// @param lotteryHash  The hash of the lottery
     function _isPaid(bytes32 lotteryHash) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.status == LotteryStatus.Paid;
     }
 
+    /// @dev Internal function to check if a lottery is canceled.
+    /// @param lotteryHash  The hash of the lottery
     function _isCanceled(bytes32 lotteryHash) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.status == LotteryStatus.Canceled;
     }
 
+    /// @inheritdoc ILottery
     function isTicket(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool) {
         return _isTicket(lotteryHash, ticketNumber);
     }
 
+    /// @dev Internal function to check if a ticket is valid.
+    /// @param lotteryHash The hash of the lottery
+    /// @param ticketNumber The ticket number to check
     function _isTicket(bytes32 lotteryHash, uint256 ticketNumber) internal view returns (bool) {
         require(_exist(lotteryHash), "Lottery: lottery not found");
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.tickets[ticketNumber] != address(0);
     }
 
+    /// @inheritdoc ILottery
     function isRedeemed(bytes32 lotteryHash, uint256 ticketNumber) external view returns (bool) {
         return _isRedeemed(lotteryHash, ticketNumber);
     }
 
+    /// @dev Internal function to check if a ticket is redeemed.
+    /// @param lotteryHash The hash of the lottery
+    /// @param ticketNumber The ticket number to check
     function _isRedeemed(bytes32 lotteryHash, uint256 ticketNumber) internal view returns (bool) {
         require(_isTicket(lotteryHash, ticketNumber), "Lottery: not a valid ticket");
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return BitMaps.get($_lottery.redeemed, ticketNumber);
     }
 
+    /// @dev Internal function to check if a lottery exists.
+    /// @param lotteryHash The hash of the lottery
     function _exist(bytes32 lotteryHash) internal view returns (bool) {
         LotteryState storage $_lottery = _getLotteryState(lotteryHash);
         return $_lottery.status != LotteryStatus.None;

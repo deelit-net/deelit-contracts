@@ -9,7 +9,8 @@ import {GovernorSettingsUpgradeable} from "@openzeppelin/contracts-upgradeable/g
 import {GovernorStorageUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorStorageUpgradeable.sol";
 import {GovernorCountingSimpleUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol";
 import {GovernorVotesUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
-import {GovernorTimelockControlUpgradeable, TimelockControllerUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
+import {TimelockControllerUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
+import {GovernorTimelockAccessUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockAccessUpgradeable.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 /// @title DeeAO governance contract
@@ -23,7 +24,7 @@ contract DeeAO is
     GovernorCountingSimpleUpgradeable,
     GovernorStorageUpgradeable,
     GovernorVotesUpgradeable,
-    GovernorTimelockControlUpgradeable,
+    GovernorTimelockAccessUpgradeable,
     AccessManagedUpgradeable,
     UUPSUpgradeable
 {
@@ -41,17 +42,17 @@ contract DeeAO is
     /**
      * @dev Contract initializer
      * @param _token The token used for voting
-     * @param _timelock  The timelock controller
-     * @param initialAuthority  The initial authority (AccessManager)
+     * @param _initialAuthority The initial authority
+     * @param _baseDelay The base delay for the timelock
      */
-    function initialize(IVotes _token, TimelockControllerUpgradeable _timelock, address initialAuthority) public initializer {
+    function initialize(IVotes _token, address _initialAuthority, uint32 _baseDelay) public initializer {
         __Governor_init(NAME);
         __GovernorSettings_init(VOTING_DELAY, VOTING_PERIOD, MIN_PROPOSAL_THRESHOLD);
         __GovernorCountingSimple_init();
         __GovernorStorage_init();
         __GovernorVotes_init(_token);
-        __GovernorTimelockControl_init(_timelock);
-        __AccessManaged_init(initialAuthority);
+        __GovernorTimelockAccess_init(_initialAuthority, _baseDelay);
+        __AccessManaged_init(_initialAuthority);
         __UUPSUpgradeable_init();
     }
 
@@ -86,14 +87,7 @@ contract DeeAO is
     /**
      * @inheritdoc GovernorUpgradeable
      */
-    function state(uint256 proposalId) public view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (ProposalState) {
-        return super.state(proposalId);
-    }
-
-    /**
-     * @inheritdoc GovernorUpgradeable
-     */
-    function proposalNeedsQueuing(uint256 proposalId) public view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (bool) {
+    function proposalNeedsQueuing(uint256 proposalId) public view override(GovernorUpgradeable, GovernorTimelockAccessUpgradeable) returns (bool) {
         return super.proposalNeedsQueuing(proposalId);
     }
 
@@ -102,6 +96,19 @@ contract DeeAO is
      */
     function proposalThreshold() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
         return super.proposalThreshold();
+    }
+
+    /**
+     *
+     * @inheritdoc GovernorTimelockAccessUpgradeable
+     */
+    function propose(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        string memory description
+    ) public virtual override(GovernorUpgradeable, GovernorTimelockAccessUpgradeable) returns (uint256) {
+        return super.propose(targets, values, calldatas, description);
     }
 
     /**
@@ -118,7 +125,7 @@ contract DeeAO is
     }
 
     /**
-     * @inheritdoc GovernorTimelockControlUpgradeable
+     * @inheritdoc GovernorTimelockAccessUpgradeable
      */
     function _queueOperations(
         uint256 proposalId,
@@ -126,12 +133,12 @@ contract DeeAO is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (uint48) {
+    ) internal override(GovernorUpgradeable, GovernorTimelockAccessUpgradeable) returns (uint48) {
         return super._queueOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     /**
-     * @inheritdoc GovernorTimelockControlUpgradeable
+     * @inheritdoc GovernorTimelockAccessUpgradeable
      */
     function _executeOperations(
         uint256 proposalId,
@@ -139,26 +146,19 @@ contract DeeAO is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) {
+    ) internal override(GovernorUpgradeable, GovernorTimelockAccessUpgradeable) {
         super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     /**
-     * @inheritdoc GovernorTimelockControlUpgradeable
+     * @inheritdoc GovernorTimelockAccessUpgradeable
      */
     function _cancel(
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (uint256) {
+    ) internal override(GovernorUpgradeable, GovernorTimelockAccessUpgradeable) returns (uint256) {
         return super._cancel(targets, values, calldatas, descriptionHash);
-    }
-
-    /**
-     * @inheritdoc GovernorTimelockControlUpgradeable
-     */
-    function _executor() internal view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (address) {
-        return super._executor();
     }
 }

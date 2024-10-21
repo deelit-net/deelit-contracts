@@ -10,11 +10,20 @@ const DEFENDER_API_SECRET = vars.get("DEFENDER_API_SECRET");
 
 const ALCHEMY_API_KEY = vars.get("ALCHEMY_API_KEY");
 
+// MAINNETS
+
+const BASE_ETHSCAN_API_KEY = vars.get("BASE_ETHSCAN_API_KEY");
+const BASE_PRIVATE_KEY = vars.get("BASE_PRIVATE_KEY");
+
+// TESTNETS
+
 const SEPOLIA_ETHSCAN_API_KEY = vars.get("SEPOLIA_ETHSCAN_API_KEY");
 const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
 const BASE_SEPOLIA_ETHSCAN_API_KEY = vars.get("BASE_SEPOLIA_ETHSCAN_API_KEY");
 const BASE_SEPOLIA_PRIVATE_KEY = vars.get("BASE_SEPOLIA_PRIVATE_KEY");
+
+const SONIC_TESTNET_PRIVATE_KEY = vars.get("SONIC_TESTNET_PRIVATE_KEY");
 
 const OPTIMISM_SEPOLIA_ETHSCAN_API_KEY = vars.get(
   "OPTIMISM_SEPOLIA_ETHSCAN_API_KEY",
@@ -27,7 +36,7 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000,
+        runs: 150,
       },
     },
   },
@@ -44,6 +53,7 @@ const config: HardhatUserConfig = {
       sepolia: SEPOLIA_ETHSCAN_API_KEY,
       baseSepolia: BASE_SEPOLIA_ETHSCAN_API_KEY,
       optimismSepolia: OPTIMISM_SEPOLIA_ETHSCAN_API_KEY,
+      base: BASE_ETHSCAN_API_KEY,
     },
     customChains: [
       {
@@ -60,6 +70,10 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
     },
+    base: {
+      url: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      accounts: [BASE_PRIVATE_KEY],
+    },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [SEPOLIA_PRIVATE_KEY],
@@ -71,6 +85,10 @@ const config: HardhatUserConfig = {
     optimismSepolia: {
       url: `https://opt-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [OPTIMISM_SEPOLIA_PRIVATE_KEY],
+    },
+    sonicTestnet: {
+      url: "https://rpc.testnet.soniclabs.com",
+      accounts: [SONIC_TESTNET_PRIVATE_KEY],
     },
   },
 };
